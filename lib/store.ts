@@ -1,6 +1,8 @@
 import { schemaStrategies } from "@/services/generators";
 import { create } from "zustand";
 import {
+  AttributeSchema,
+  AttributeType,
   EntitySchema,
   EntityType,
   ModelType,
@@ -8,13 +10,41 @@ import {
   RelationType,
 } from "../schemas";
 
-type State = {
+export type State = {
   model: ModelType;
+  setTarget?: (target: ModelType["target"]) => void;
+  // entity actions
   addEntityToModel: (entity: EntityType) => void;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
+  setEntityPosition: (
+    entityId: EntityType["id"],
+    x: EntityType["x"],
+    y: EntityType["y"]
+  ) => void;
+  // attribute actions
+  addAttributeToEntity: (
+    entityId: EntityType["id"],
+    attribute: AttributeType
+  ) => void;
+  deleteAttributeFromEntity: (
+    entityId: EntityType["id"],
+    attributeId: AttributeType["id"]
+  ) => void;
+  editAttributeType: (
+    entityId: EntityType["id"],
+    attributeId: AttributeType["id"],
+    type: AttributeType["type"]
+  ) => void;
+  // relation actions
   addRelationToModel: (relation: RelationType) => void;
   deleteRelationFromModel: (relationId: RelationType["id"]) => void;
+  // export schema
   generateSchema: (model: ModelType, target: "postgres" | "mysql") => string;
+};
+
+export const getEntityById = (state: State, entityId: EntityType["id"]) => {
+  const entity = state.model.entities.find((entity) => entity.id === entityId);
+  return entity;
 };
 
 const useAppStore = create<State>((set) => ({
@@ -22,8 +52,9 @@ const useAppStore = create<State>((set) => ({
     name: "Tables App",
     entities: [],
     relations: [],
+    target: "postgres",
   },
-  addEntityToModel: (entity: EntityType) => {
+  addEntityToModel: (entity) => {
     try {
       EntitySchema.parse(entity);
       set((state) => ({
@@ -36,7 +67,7 @@ const useAppStore = create<State>((set) => ({
       console.error("An error occured while adding the model", error);
     }
   },
-  deleteEntityFromModel: (entityId: EntityType["id"]) =>
+  deleteEntityFromModel: (entityId) =>
     set((state) => ({
       model: {
         ...state.model,
@@ -45,6 +76,78 @@ const useAppStore = create<State>((set) => ({
         ),
       },
     })),
+  setEntityPosition: (entityId, x, y) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.x = x;
+            entity.y = y;
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+  addAttributeToEntity: (entityId, attribute) => {
+    // parse attribute
+    set((state) => {
+      try {
+        AttributeSchema.parse(attribute);
+      } catch (error) {
+        console.error("An error occured while adding the attribute", error);
+      }
+
+      const entity = state.model.entities.find((nty) => entityId === nty.id);
+      if (!entity) {
+        throw new Error(`Entity not found by id: ${entityId}`);
+      }
+
+      entity.attributes.push(attribute);
+      return {
+        model: {
+          ...state.model,
+          entities: state.model.entities.map((nty) =>
+            nty.id === entityId ? entity : nty
+          ),
+        },
+      };
+    });
+  },
+  deleteAttributeFromEntity: (entityId, attributeId) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.attributes = entity.attributes.filter(
+              (attribute) => attribute.id !== attributeId
+            );
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+  editAttributeType: (entityId, attributeId, type) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.attributes = entity.attributes.map((attribute) => {
+              if (attribute.id === attributeId) {
+                attribute.type = type;
+              }
+              return attribute;
+            });
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
   addRelationToModel: (relation) => {
     try {
       RelationSchema.parse(relation);
@@ -69,10 +172,11 @@ const useAppStore = create<State>((set) => ({
       },
     })),
 
-  generateSchema: (model: any, target: string) => {
+  generateSchema: (model, target) => {
     const strategy = schemaStrategies[target];
     if (strategy) {
-      return strategy.generate(model);
+      console.log("Generating schema for target:", target);
+      return strategy.generateSchema(model);
     } else {
       // Handle case where strategy is not found
       throw new Error(`Unknown target: ${target}`);

@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Command,
+  Copy,
   CreditCard,
   File,
   FileText,
@@ -33,6 +34,7 @@ import {
 export type Icon = LucideIcon;
 
 export const Icons = {
+  copy: Copy,
   hamburger: MenuSquare,
   loading: Loader2,
   megaPhone: Megaphone,

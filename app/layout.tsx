@@ -1,9 +1,7 @@
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +16,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" suppressHydrationWarning>
       <head />
-      <body className="h-full">
+      <body className="w-full h-full bg-graph-image dark:bg-graph-image-dark bg-graph-size bg-graph-position">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
