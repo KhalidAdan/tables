@@ -3,7 +3,7 @@
 import useAppStore from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { EntityType } from "@/schemas";
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import AddAttributeForm from "./add-attribute-form";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -21,10 +21,11 @@ import { TypographySmall } from "./ui/typography";
 
 type EntityProps = { entity: EntityType };
 
-export default function Entity({ entity }: EntityProps) {
+const Entity = React.memo(({ entity }: EntityProps) => {
   const attributes = entity.attributes;
   const hasAttributes = attributes.length > 0;
   const { deleteAttributeFromEntity, setAnchor } = useAppStore();
+
   const myCallbackRef = useCallback((node: HTMLDivElement) => {
     if (node !== null) {
       const { x, width, height } = node.getBoundingClientRect();
@@ -33,6 +34,7 @@ export default function Entity({ entity }: EntityProps) {
       setAnchor(entity.id, fromAnchor, toAnchor);
     }
   }, []);
+
   return (
     <Draggable entity={entity}>
       <div className="relative">
@@ -107,4 +109,8 @@ export default function Entity({ entity }: EntityProps) {
       </div>
     </Draggable>
   );
-}
+});
+
+Entity.displayName = "Entity";
+
+export default Entity;

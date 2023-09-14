@@ -44,7 +44,9 @@ export type State = {
   addRelationToModel: (relation: RelationType) => void;
   deleteRelationFromModel: (relationId: RelationType["id"]) => void;
   // export schema
-  generateSchema: () => string;
+  generateSchema: (
+    entityData: Omit<EntityType, "x" | "y" | "fromAnchor" | "toAnchor">[]
+  ) => string;
 };
 
 export const getEntityById = (state: State, entityId: EntityType["id"]) => {
@@ -82,18 +84,21 @@ const useAppStore = create<State>((set, get) => ({
       },
     })),
   setEntityPosition: (entityId, x, y) => {
-    set((state) => ({
-      model: {
-        ...state.model,
-        entities: state.model.entities.map((entity) => {
-          if (entity.id === entityId) {
-            entity.x = x;
-            entity.y = y;
-          }
-          return entity;
-        }),
-      },
-    }));
+    set((state) => {
+      const updatedEntities = state.model.entities.map((entity) => {
+        if (entity.id === entityId) {
+          return { ...entity, x, y };
+        }
+        return entity;
+      });
+
+      return {
+        model: {
+          ...state.model,
+          entities: updatedEntities,
+        },
+      };
+    });
   },
   setAnchor: (entityId, fromAnchor, toAnchor) => {
     set((state) => ({
@@ -198,8 +203,12 @@ const useAppStore = create<State>((set, get) => ({
         target,
       },
     })),
-  generateSchema: () => {
-    const model = get().model;
+  generateSchema: (entityData) => {
+    const model = {
+      ...get().model,
+      entities: entityData,
+    };
+
     const strategy = schemaStrategies[model.target];
     if (strategy) {
       console.log("Generating schema for target:", model.target);

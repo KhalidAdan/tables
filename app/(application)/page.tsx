@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar
@@ -24,7 +24,10 @@ import { useEffect } from "react";
 
 export default function HomePage() {
   const { model, setTarget, addEntityToModel, generateSchema } = useAppStore();
+
+  // add test entity, TODO: remove
   useEffect(() => {
+    console.log("adding model");
     addEntityToModel({
       id: crypto.randomUUID(),
       name: "Student",
@@ -53,6 +56,22 @@ export default function HomePage() {
       relations: [],
     });
   }, []);
+
+  const relevantEntityData = useMemo(() => {
+    return model.entities.map(({ fromAnchor, toAnchor, x, y, ...rest }) => {
+      return {
+        ...rest,
+        fromAnchor: null,
+        toAnchor: null,
+      };
+    });
+  }, [model.entities]);
+
+  const schema = useMemo(() => {
+    return generateSchema(relevantEntityData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relevantEntityData]);
+
   return (
     <main className="h-full">
       <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
@@ -84,7 +103,7 @@ export default function HomePage() {
           </Select>
           <SchemaDefinitionSheet
             target={model.target}
-            schema={generateSchema()}
+            schema={schema}
             sheetTrigger={
               <Button variant="outline" size="icon">
                 <Icons.hamburger />
