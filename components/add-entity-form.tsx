@@ -16,6 +16,12 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
+// TODO: on create enter placement mode, then on click create entity
+// ==> close modal
+// ==> make an entity that follows the mouse
+// ==> on click place it there
+// TODO: make sure the entity is not created on another entity
+
 export function AddEntityForm() {
   const { addEntityToModel } = useAppStore();
   const randomUuid = crypto.randomUUID();
@@ -27,6 +33,8 @@ export function AddEntityForm() {
       name: "",
       attributes: [],
       relations: [],
+      toAnchor: null,
+      fromAnchor: null,
     },
   });
   const onSubmit: SubmitHandler<EntityType> = (values) => {

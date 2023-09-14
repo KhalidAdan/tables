@@ -5,8 +5,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import useAppStore from "@/lib/store";
-import { ModelType } from "@/schemas";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 
@@ -37,20 +35,20 @@ CREATE TABLE Registration (
 
 export default function SchemaDefinitionSheet({
   sheetTrigger,
-  model,
+  target,
+  schema,
 }: {
   sheetTrigger: React.ReactNode;
-  model: ModelType;
+  target: "postgres" | "mysql" | "prisma";
+  schema: string;
 }) {
-  const { generateSchema } = useAppStore();
-  const schema = generateSchema(model);
   return (
     <Sheet>
       <SheetTrigger asChild>{sheetTrigger}</SheetTrigger>
       <SheetContent side="right" className="!max-w-xl">
         <SheetHeader>
           <SheetTitle className="capitalize flex justify-between">
-            {model.target} Schema
+            {target} Schema
           </SheetTitle>
         </SheetHeader>
         <div className="absolute right-8 top-16">

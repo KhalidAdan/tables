@@ -23,13 +23,15 @@ import { useEffect } from "react";
 // TODO: Command pallette for quick actions?
 
 export default function HomePage() {
-  const { model, setTarget, addEntityToModel } = useAppStore();
+  const { model, setTarget, addEntityToModel, generateSchema } = useAppStore();
   useEffect(() => {
     addEntityToModel({
       id: crypto.randomUUID(),
-      name: "User",
+      name: "Student",
       x: 100,
       y: 100,
+      fromAnchor: null,
+      toAnchor: null,
       attributes: [
         {
           id: crypto.randomUUID(),
@@ -81,7 +83,8 @@ export default function HomePage() {
             </SelectContent>
           </Select>
           <SchemaDefinitionSheet
-            model={model}
+            target={model.target}
+            schema={generateSchema()}
             sheetTrigger={
               <Button variant="outline" size="icon">
                 <Icons.hamburger />

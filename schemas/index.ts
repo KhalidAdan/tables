@@ -10,11 +10,14 @@ export type IdentifierType = string;
 export type AttributeType = z.infer<typeof AttributeSchema>;
 export type RelationType = z.infer<typeof RelationSchema>;
 export type ModelType = z.infer<typeof ModelSchema>;
+export type AnchorType = z.infer<typeof Anchor>;
 export type EntityType = {
   id: IdentifierType;
   name: string;
   x?: number;
   y?: number;
+  fromAnchor: AnchorType | null;
+  toAnchor: AnchorType | null;
   attributes: AttributeType[];
   relations: RelationType[];
 };
@@ -91,11 +94,20 @@ export const AttributeSchema = z
     }
   );
 
+const Anchor = z
+  .object({
+    x: z.number(),
+    y: z.number(),
+  })
+  .nullable();
+
 export const EntitySchema: z.ZodType<EntityType> = z.object({
   id: Identifier,
   name: z.string(),
   x: z.number().default(0),
   y: z.number().default(0),
+  fromAnchor: Anchor,
+  toAnchor: Anchor,
   attributes: z.array(AttributeSchema),
   relations: z.array(z.lazy(() => RelationSchema)),
 });

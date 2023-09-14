@@ -21,6 +21,11 @@ export type State = {
     x: EntityType["x"],
     y: EntityType["y"]
   ) => void;
+  setAnchor: (
+    entityId: EntityType["id"],
+    fromAnchor: EntityType["fromAnchor"],
+    toAnchor: EntityType["toAnchor"]
+  ) => void;
   // attribute actions
   addAttributeToEntity: (
     entityId: EntityType["id"],
@@ -39,7 +44,7 @@ export type State = {
   addRelationToModel: (relation: RelationType) => void;
   deleteRelationFromModel: (relationId: RelationType["id"]) => void;
   // export schema
-  generateSchema: (model: ModelType) => string;
+  generateSchema: () => string;
 };
 
 export const getEntityById = (state: State, entityId: EntityType["id"]) => {
@@ -47,7 +52,7 @@ export const getEntityById = (state: State, entityId: EntityType["id"]) => {
   return entity;
 };
 
-const useAppStore = create<State>((set) => ({
+const useAppStore = create<State>((set, get) => ({
   model: {
     name: "Tables App",
     entities: [],
@@ -90,6 +95,21 @@ const useAppStore = create<State>((set) => ({
       },
     }));
   },
+  setAnchor: (entityId, fromAnchor, toAnchor) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.fromAnchor = fromAnchor;
+            entity.toAnchor = toAnchor;
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+
   addAttributeToEntity: (entityId, attribute) => {
     // parse attribute
     set((state) => {
@@ -178,7 +198,8 @@ const useAppStore = create<State>((set) => ({
         target,
       },
     })),
-  generateSchema: (model) => {
+  generateSchema: () => {
+    const model = get().model;
     const strategy = schemaStrategies[model.target];
     if (strategy) {
       console.log("Generating schema for target:", model.target);
