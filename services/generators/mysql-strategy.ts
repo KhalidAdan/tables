@@ -1,7 +1,7 @@
 import { ModelType } from "@/schemas";
-import { IOutputStrategy } from "./output-strategy";
+import { AbstractOutputStrategy } from "./output-strategy";
 
-export class MySQLStrategy extends IOutputStrategy {
+export class MySQLStrategy extends AbstractOutputStrategy {
   generateSchema(model: ModelType) {
     let sqlOutput = "";
 
@@ -26,11 +26,17 @@ export class MySQLStrategy extends IOutputStrategy {
           sqlOutput += ` DEFAULT ${attr.default}`;
         }
         sqlOutput +=
-          attr !== nty.attributes[nty.attributes.length - 1] ? `,\n` : `\n`;
+          attr !== nty.attributes[nty.attributes.length - 1]
+            ? `,\n`
+            : attr.unique
+            ? `,\n`
+            : `\n`;
         attr.unique && uniqueAttributes.push(attr.name);
       }
       for (const unique of uniqueAttributes) {
-        sqlOutput += `  UNIQUE (${this.toSnakeCase(unique)})`;
+        sqlOutput += `  CONSTRAINT uc_${this.toSnakeCase(
+          nty.name
+        )} UNIQUE (${this.toSnakeCase(unique)})`;
         sqlOutput +=
           unique !== uniqueAttributes[uniqueAttributes.length - 1]
             ? `,\n`

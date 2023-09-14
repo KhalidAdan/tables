@@ -16,13 +16,41 @@ import {
 } from "@/components/ui/select";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
+import { useEffect } from "react";
 
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar
 // TODO: Command pallette for quick actions?
 
 export default function HomePage() {
-  const { model } = useAppStore();
+  const { model, setTarget, addEntityToModel } = useAppStore();
+  useEffect(() => {
+    addEntityToModel({
+      id: crypto.randomUUID(),
+      name: "User",
+      x: 100,
+      y: 100,
+      attributes: [
+        {
+          id: crypto.randomUUID(),
+          name: "id",
+          type: "serial",
+          primaryKey: true,
+          unique: false,
+          nullable: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "email",
+          type: "string",
+          primaryKey: true,
+          unique: true,
+          nullable: false,
+        },
+      ],
+      relations: [],
+    });
+  }, []);
   return (
     <main className="h-full">
       <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
@@ -35,7 +63,12 @@ export default function HomePage() {
               </Button>
             }
           />
-          <Select defaultValue="postgres">
+          <Select
+            defaultValue="postgres"
+            onValueChange={(value: "postgres" | "mysql") => {
+              setTarget(value);
+            }}
+          >
             <SelectTrigger className="w-[180px] z-10">
               <SelectValue />
             </SelectTrigger>
@@ -48,7 +81,6 @@ export default function HomePage() {
             </SelectContent>
           </Select>
           <SchemaDefinitionSheet
-            type="mysql"
             model={model}
             sheetTrigger={
               <Button variant="outline" size="icon">

@@ -1,7 +1,7 @@
 import { ModelType } from "@/schemas";
-import { IOutputStrategy } from "./output-strategy";
+import { AbstractOutputStrategy } from "./output-strategy";
 
-export class PostgresStrategy extends IOutputStrategy {
+export class PostgresStrategy extends AbstractOutputStrategy {
   generateSchema(model: ModelType) {
     let sqlOutput = "";
 
@@ -18,7 +18,11 @@ export class PostgresStrategy extends IOutputStrategy {
         // not null
         sqlOutput += attr.nullable && !attr.primaryKey ? "" : " NOT NULL";
         sqlOutput +=
-          attr !== nty.attributes[nty.attributes.length - 1] ? `,\n` : `\n`;
+          attr !== nty.attributes[nty.attributes.length - 1]
+            ? `,\n`
+            : attr.unique
+            ? `,\n`
+            : `\n`;
         attr.unique && uniqueAttributes.push(attr.name);
       }
       for (const unique of uniqueAttributes) {

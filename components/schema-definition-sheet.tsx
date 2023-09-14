@@ -36,23 +36,21 @@ CREATE TABLE Registration (
 `;
 
 export default function SchemaDefinitionSheet({
-  type,
   sheetTrigger,
   model,
 }: {
-  type: "postgres" | "mysql";
   sheetTrigger: React.ReactNode;
   model: ModelType;
 }) {
   const { generateSchema } = useAppStore();
-  const schema = generateSchema(model, type);
+  const schema = generateSchema(model);
   return (
     <Sheet>
       <SheetTrigger asChild>{sheetTrigger}</SheetTrigger>
       <SheetContent side="right" className="!max-w-xl">
         <SheetHeader>
           <SheetTitle className="capitalize flex justify-between">
-            {type} Schema
+            {model.target} Schema
           </SheetTitle>
         </SheetHeader>
         <div className="absolute right-8 top-16">

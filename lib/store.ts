@@ -12,7 +12,7 @@ import {
 
 export type State = {
   model: ModelType;
-  setTarget?: (target: ModelType["target"]) => void;
+  setTarget: (target: ModelType["target"]) => void;
   // entity actions
   addEntityToModel: (entity: EntityType) => void;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
@@ -39,7 +39,7 @@ export type State = {
   addRelationToModel: (relation: RelationType) => void;
   deleteRelationFromModel: (relationId: RelationType["id"]) => void;
   // export schema
-  generateSchema: (model: ModelType, target: "postgres" | "mysql") => string;
+  generateSchema: (model: ModelType) => string;
 };
 
 export const getEntityById = (state: State, entityId: EntityType["id"]) => {
@@ -171,15 +171,21 @@ const useAppStore = create<State>((set) => ({
         ),
       },
     })),
-
-  generateSchema: (model, target) => {
-    const strategy = schemaStrategies[target];
+  setTarget: (target) =>
+    set((state) => ({
+      model: {
+        ...state.model,
+        target,
+      },
+    })),
+  generateSchema: (model) => {
+    const strategy = schemaStrategies[model.target];
     if (strategy) {
-      console.log("Generating schema for target:", target);
+      console.log("Generating schema for target:", model.target);
       return strategy.generateSchema(model);
     } else {
       // Handle case where strategy is not found
-      throw new Error(`Unknown target: ${target}`);
+      throw new Error(`Unknown target: ${model.target}`);
     }
   },
 }));
