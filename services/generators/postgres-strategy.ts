@@ -11,9 +11,11 @@ export class PostgresStrategy extends AbstractOutputStrategy {
 
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
     const uniqueAttributes: any[] = [];
-    const columnDefs = entity.attributes.map((attr: AttributeType) =>
-      this.generateColumnDef(attr, uniqueAttributes)
-    );
+    const columnDefs = entity.attributes
+      .filter((attr) => !attr.foreignKey)
+      .map((attr: AttributeType) =>
+        this.generateColumnDef(attr, uniqueAttributes)
+      );
 
     const foreignKeys = this.generateForeignKeys(model, entity.id);
     if (foreignKeys) columnDefs.push(foreignKeys);
