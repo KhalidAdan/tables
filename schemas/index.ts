@@ -11,16 +11,7 @@ export type AttributeType = z.infer<typeof AttributeSchema>;
 export type RelationType = z.infer<typeof RelationSchema>;
 export type ModelType = z.infer<typeof ModelSchema>;
 export type AnchorType = z.infer<typeof Anchor>;
-export type EntityType = {
-  id: IdentifierType;
-  name: string;
-  x?: number;
-  y?: number;
-  fromAnchor: AnchorType | null;
-  toAnchor: AnchorType | null;
-  attributes: AttributeType[];
-};
-
+export type EntityType = z.infer<typeof EntitySchema>;
 export const Identifier = z.string().uuid(); // if I decide to use a DB i'll let it generate the uuids
 
 const AttributeTypes = z.enum([
@@ -104,7 +95,7 @@ const Anchor = z
   })
   .nullable();
 
-export const EntitySchema: z.ZodType<EntityType> = z.object({
+export const EntitySchema = z.object({
   id: Identifier,
   name: z.string(),
   x: z.number().default(0),

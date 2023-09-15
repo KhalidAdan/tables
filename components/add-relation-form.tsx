@@ -93,11 +93,23 @@ export function AddRelationForm({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Select entity</SelectLabel>
-                      {model.entities.map((entity, i) => (
-                        <SelectItem key={i} value={entity.id}>
-                          {entity.name}
-                        </SelectItem>
-                      ))}
+                      {model.entities.map((entity, i) => {
+                        const hasId = entity.attributes.find(
+                          (attr) => attr.type === "identifier"
+                        );
+                        return (
+                          <SelectItem
+                            key={i}
+                            value={entity.id}
+                            disabled={!hasId}
+                          >
+                            {entity.name}{" "}
+                            {hasId
+                              ? ""
+                              : "(no identifier attribute to create a relation)"}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

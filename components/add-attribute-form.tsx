@@ -21,10 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { TypographyMuted } from "./ui/typography";
 
 export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   // TODO: disallow primary key fields to be nullable
-  const { addAttributeToEntity } = useAppStore();
+  const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AttributeType>({
     criteriaMode: "all",
@@ -42,6 +43,9 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <TypographyMuted>
+          Add an attribute to your entity or delete an entity below.
+        </TypographyMuted>
         <FormField
           control={form.control}
           name="name"
@@ -159,7 +163,22 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
             </FormItem>
           )}
         />
-        <Button type="submit">Add Attribute</Button>
+        <div className="flex justify-between">
+          <Button type="submit">Add Attribute</Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => {
+              if (
+                confirm("Are you sure? This could royally mess up your schema!")
+              ) {
+                deleteEntityFromModel(entity.id);
+              }
+            }}
+          >
+            Delete Entity
+          </Button>
+        </div>
       </form>
     </Form>
   );

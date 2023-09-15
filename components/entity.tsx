@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import Draggable from "./ui/draggable";
-import { Icons } from "./ui/icons";
 import { TypographySmall } from "./ui/typography";
 
 type EntityProps = { entity: EntityType };
@@ -44,7 +43,7 @@ const Entity = ({ entity }: EntityProps) => {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm">
-                <Icons.add />
+                Edit
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -67,7 +66,7 @@ const Entity = ({ entity }: EntityProps) => {
         ) : (
           <div>
             <TypographySmall>
-              No attributes! Add one by clicking the plus button above.
+              No attributes yet. Add one by clicking the edit button above.
             </TypographySmall>
           </div>
         )}

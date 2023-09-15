@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 export default function AddEntityOrRelation() {
   const [open, setOpen] = useState(false);
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon" onClick={() => setOpen(!open)}>
           <Icons.add />
