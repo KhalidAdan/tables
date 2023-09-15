@@ -40,7 +40,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
 
     if (attr.primaryKey) def += " PRIMARY KEY";
     if (attr.default) def += ` DEFAULT ${attr.default}`;
-    if (!attr.nullable || attr.primaryKey) def += " NOT NULL";
+    if (!attr.nullable && !attr.primaryKey) def += " NOT NULL";
 
     if (attr.unique) uniqueAttributes.push(attr.name);
 
@@ -82,9 +82,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
         relation.fromEntity.id
       );
       return generateRefString(fromEntity.name, primaryKeyAttribute.name);
-    }
-
-    if (relation.type === "many-to-many") {
+    } else if (relation.type === "many-to-many") {
       if (!relation.throughEntity)
         throw new Error("Missing through entity on a many-to-many relation");
       if (relation.throughEntity.id !== entityId) return;

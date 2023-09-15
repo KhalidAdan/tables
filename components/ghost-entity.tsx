@@ -1,6 +1,7 @@
 "use client";
 
 import { useUIStore } from "@/lib/ui-store";
+import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 
 export default function GhostEntity() {
@@ -26,7 +27,11 @@ export default function GhostEntity() {
       {placementMode && (
         <div
           ref={ref}
-          className="pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 bg-background opacity-75 dark:opacity-50"
+          className={cn(
+            ghostPosition
+              ? "pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 bg-background opacity-75 dark:opacity-50"
+              : "hidden"
+          )}
           style={
             ghostPosition
               ? {

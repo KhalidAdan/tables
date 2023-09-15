@@ -19,12 +19,15 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 
+// TODO: Deleting entity in relation should delete relation
+// TODO: When adding a relation a the new entity should use the ghost entity
+// TODO: continue separating UI concerns over data concerns, right now moving an entity regenerates the schema
 // TODO: Relationship lines and crow's feet
-// TODO: Drag handle for sidebar
-// TODO: Command pallette for quick actions?
+// TODO: Drag handle for sidebar?
+// TODO: Command pallette for quick actions? What would that look like?
 
 export default function HomePage() {
-  const { model, setTarget, addEntityToModel, generateSchema } = useAppStore();
+  const { model, setTarget, generateSchema } = useAppStore();
   const { placementMode } = useUIStore();
 
   const schema = generateSchema();

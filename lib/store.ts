@@ -159,6 +159,8 @@ const useAppStore = create<State>((set, get) => ({
     });
   },
   deleteAttributeFromEntity: (entityId, attributeId) => {
+    // if attr.foreignKey == true
+    // find relation with attr as foreign ket (attr is fk)
     set((state) => ({
       model: {
         ...state.model,

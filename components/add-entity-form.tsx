@@ -30,8 +30,7 @@ export function AddEntityForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { addEntityToModel } = useAppStore();
-  const { ghostPosition, setGhostPosition, placementMode, setPlacementMode } =
-    useUIStore();
+  const { setGhostPosition, setPlacementMode } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
