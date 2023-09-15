@@ -349,7 +349,7 @@ function createOneToManyRelation(
     primaryKey: false,
     nullable: false,
     unique: false,
-    foreignKey: true,
+    relationKey: relation.id,
   };
   set((state) => ({
     model: {
@@ -416,7 +416,7 @@ function createManyToManyRelation(
         primaryKey: false,
         nullable: false,
         unique: false,
-        foreignKey: true,
+        relationKey: relation.id,
       },
       {
         id: crypto.randomUUID(),
@@ -425,7 +425,7 @@ function createManyToManyRelation(
         primaryKey: false,
         nullable: false,
         unique: false,
-        foreignKey: true,
+        relationKey: relation.id,
       },
     ],
   };

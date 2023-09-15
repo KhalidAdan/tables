@@ -14,7 +14,7 @@ export class MySQLStrategy extends AbstractOutputStrategy {
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
     const uniqueAttributes: any[] = [];
     const columnDefs = entity.attributes
-      .filter((attr) => !attr.foreignKey)
+      .filter((attr) => !attr.relationKey)
       .map((attr: AttributeType) =>
         this.generateColumnDef(attr, uniqueAttributes)
       );
@@ -34,7 +34,7 @@ export class MySQLStrategy extends AbstractOutputStrategy {
     attr: AttributeType,
     uniqueAttributes: string[]
   ): string {
-    if (attr.foreignKey) return "";
+    if (attr.relationKey) return "";
 
     let def = `${this.toSnakeCase(attr.name)} ${this.columnType(attr.type)}`;
 

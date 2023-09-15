@@ -53,7 +53,7 @@ export const AttributeSchema = z
     nullable: z.boolean(),
     unique: z.boolean(),
     default: z.any().optional(),
-    foreignKey: z.boolean().optional(),
+    relationKey: Identifier.optional(),
   })
   .refine(
     (data) => {
