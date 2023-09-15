@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
-import { useEffect } from "react";
+import { useUIStore } from "@/lib/ui-store";
 
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar
@@ -25,70 +25,7 @@ import { useEffect } from "react";
 
 export default function HomePage() {
   const { model, setTarget, addEntityToModel, generateSchema } = useAppStore();
-
-  // add testing entities, TODO: remove
-  useEffect(() => {
-    addEntityToModel({
-      id: crypto.randomUUID(),
-      name: "Student",
-      x: 100,
-      y: 100,
-      fromAnchor: null,
-      toAnchor: null,
-      attributes: [
-        {
-          id: crypto.randomUUID(),
-          name: "ID",
-          type: "identifier",
-          primaryKey: true,
-          unique: false,
-          nullable: false,
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "Email",
-          type: "string",
-          primaryKey: false,
-          unique: true,
-          nullable: false,
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "Phone Number",
-          type: "string",
-          primaryKey: false,
-          unique: false,
-          nullable: true,
-        },
-      ],
-    });
-    addEntityToModel({
-      id: crypto.randomUUID(),
-      name: "Class",
-      x: 1000,
-      y: 100,
-      fromAnchor: null,
-      toAnchor: null,
-      attributes: [
-        {
-          id: crypto.randomUUID(),
-          name: "ID",
-          type: "identifier",
-          primaryKey: true,
-          unique: false,
-          nullable: false,
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "Name of Class",
-          type: "string",
-          primaryKey: false,
-          unique: false,
-          nullable: false,
-        },
-      ],
-    });
-  }, []);
+  const { placementMode } = useUIStore();
 
   const schema = generateSchema();
 
@@ -131,7 +68,7 @@ export default function HomePage() {
           <Entity key={i} entity={entity} />
         ))}
       </section>
-      <GhostEntity />
+      {placementMode && <GhostEntity />}
     </main>
   );
 }

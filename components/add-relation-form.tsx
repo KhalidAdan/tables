@@ -23,7 +23,11 @@ import {
   SelectValue,
 } from "./ui/select";
 
-export function AddRelationForm() {
+export function AddRelationForm({
+  setOpen,
+}: {
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const { model, addRelationToModel } = useAppStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
@@ -34,6 +38,7 @@ export function AddRelationForm() {
   });
 
   const onSubmit: SubmitHandler<AddRelationFormProps> = (values) => {
+    setOpen(false);
     console.log(values);
     // call addRelationToModel
     addRelationToModel(values);

@@ -48,7 +48,7 @@ export default function AddEntityOrRelation() {
             <TabsContent value="add-relation">
               <Card className="border-none">
                 <CardContent className="space-y-2 px-0 pb-0">
-                  <AddRelationForm />
+                  <AddRelationForm setOpen={setOpen} />
                 </CardContent>
               </Card>
             </TabsContent>

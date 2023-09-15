@@ -39,7 +39,6 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   const onSubmit: SubmitHandler<AttributeType> = (values: AttributeType) => {
     addAttributeToEntity(entity.id, values);
   };
-  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
