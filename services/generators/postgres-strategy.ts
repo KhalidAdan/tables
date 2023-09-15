@@ -25,7 +25,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
 
     return `CREATE TABLE ${this.toSnakeCase(
       entity.name
-    )} (\n  ${columnDefs.join(",\n  ")}\n)`;
+    )} (\n  ${columnDefs.join(",\n  ")}\n);`;
   }
 
   private generateColumnDef(
@@ -51,27 +51,57 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     model: ModelType,
     entityId: string
   ): string | null {
-    const foreignKeys = model.relations
-      .filter((relation) => relation.toEntity.id === entityId)
-      .map((relation) => this.generateForeignKey(model, relation));
+    const foreignKeys = model.relations.map((relation) =>
+      this.generateForeignKey(model, entityId, relation)
+    );
 
     return foreignKeys.length > 0 ? `${foreignKeys.join(",\n  ")}` : null;
   }
 
-  private generateForeignKey(model: ModelType, relation: RelationType): string {
-    // TODO: handle missing entities and attributes more gracefully
-    const toEntity = model.entities.find(
-      (entity) => entity.id === relation.toEntity.id
-    )!;
-    const primaryKeyAttribute = toEntity.attributes.find(
-      (attr) => attr.primaryKey
-    )!;
+  private generateForeignKey(
+    model: ModelType,
+    entityId: string,
+    relation: RelationType
+  ): string | undefined {
+    const findEntityAndPK = (id: string) => {
+      const entity = model.entities.find((e) => e.id === id);
+      if (!entity) throw new Error(`Entity not found: ${id}`);
+      const pk = entity.attributes.find((attr) => attr.primaryKey);
+      if (!pk) throw new Error(`Primary key not found for entity: ${id}`);
+      return { entity, pk };
+    };
 
-    return `${this.toSnakeCase(
-      relation.fromEntity.name
-    )}_id int REFERENCES ${this.toSnakeCase(
-      relation.fromEntity.name
-    )}(${this.toSnakeCase(primaryKeyAttribute.name)}) ON DELETE NOT NULL`;
+    const generateRefString = (name: string, pkName: string) =>
+      `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
+        name
+      )}(${this.toSnakeCase(pkName)}) ON DELETE NOT NULL`;
+
+    if (relation.type === "one-to-one" || relation.type === "one-to-many") {
+      if (relation.toEntity.id !== entityId) return;
+      const { entity: fromEntity, pk: primaryKeyAttribute } = findEntityAndPK(
+        relation.fromEntity.id
+      );
+      return generateRefString(fromEntity.name, primaryKeyAttribute.name);
+    }
+
+    if (relation.type === "many-to-many") {
+      if (!relation.throughEntity)
+        throw new Error("Missing through entity on a many-to-many relation");
+      if (relation.throughEntity.id !== entityId) return;
+
+      const { entity: fromEntity, pk: fromPrimaryKeyAttribute } =
+        findEntityAndPK(relation.fromEntity.id);
+      const { entity: toEntity, pk: toPrimaryKeyAttribute } = findEntityAndPK(
+        relation.toEntity.id
+      );
+
+      return `${generateRefString(
+        fromEntity.name,
+        fromPrimaryKeyAttribute.name
+      )},\n  ${generateRefString(toEntity.name, toPrimaryKeyAttribute.name)}`;
+    }
+
+    throw new Error(`Unsupported relation type: ${relation.type}`);
   }
 
   private generateUniqueColumns(uniqueAttributes: string[]): string | null {

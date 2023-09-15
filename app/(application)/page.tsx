@@ -89,7 +89,7 @@ export default function HomePage() {
       ],
     });
   }, []);
-
+  console.log(model);
   const schema = generateSchema();
 
   return (

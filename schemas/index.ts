@@ -142,6 +142,7 @@ export const RelationSchema = z.object({
   id: Identifier,
   fromEntity: z.lazy(() => EntitySchema),
   toEntity: z.lazy(() => EntitySchema),
+  throughEntity: z.lazy(() => EntitySchema).optional(),
   type: z.enum(["one-to-one", "one-to-many", "many-to-many"] as const),
 });
 

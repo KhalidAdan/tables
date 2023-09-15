@@ -382,6 +382,7 @@ function createManyToManyRelation(
     replace?: boolean | undefined
   ) => void
 ) {
+  console.log("Creating many to many relation");
   const fromEntity = getEntityById(get(), relation.fromEntityId);
   const toEntity = getEntityById(get(), relation.toEntityId);
 
@@ -391,46 +392,46 @@ function createManyToManyRelation(
     );
   }
 
-  const throughEntity: EntityType = createEntity(
-    {
-      id: crypto.randomUUID(),
-      name: `${fromEntity.name}_${toEntity.name}`,
-      x: 0,
-      y: 0,
-      fromAnchor: null,
-      toAnchor: null,
-      attributes: [
-        {
-          id: crypto.randomUUID(),
-          name: `${fromEntity.name.toLowerCase()}Id`,
-          type: "identifier",
-          primaryKey: false,
-          nullable: false,
-          unique: false,
-        },
-        {
-          id: crypto.randomUUID(),
-          name: `${toEntity.name.toLowerCase()}Id`,
-          type: "identifier",
-          primaryKey: false,
-          nullable: false,
-          unique: false,
-        },
-      ],
-    },
-    set
-  );
+  const throughEntity: EntityType = {
+    id: crypto.randomUUID(),
+    name: `${fromEntity.name}_${toEntity.name}`,
+    x: 0,
+    y: 0,
+    fromAnchor: null,
+    toAnchor: null,
+    attributes: [
+      {
+        id: crypto.randomUUID(),
+        name: `${fromEntity.name.toLowerCase()}Id`,
+        type: "identifier",
+        primaryKey: false,
+        nullable: false,
+        unique: false,
+        foreignKey: true,
+      },
+      {
+        id: crypto.randomUUID(),
+        name: `${toEntity.name.toLowerCase()}Id`,
+        type: "identifier",
+        primaryKey: false,
+        nullable: false,
+        unique: false,
+        foreignKey: true,
+      },
+    ],
+  };
 
-  // create two relations to throughEntity
   set((state) => ({
     model: {
       ...state.model,
+      entities: [...state.model.entities, throughEntity],
       relations: [
         ...state.model.relations,
         {
           id: crypto.randomUUID(),
           fromEntity,
           toEntity,
+          throughEntity,
           type: "many-to-many",
         },
       ],
