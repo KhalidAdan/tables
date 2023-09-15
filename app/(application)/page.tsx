@@ -2,6 +2,7 @@
 
 import AddEntityOrRelation from "@/components/add-entity-or-realtionship-dialogue";
 import Entity from "@/components/entity";
+import GhostEntity from "@/components/ghost-entity";
 import SchemaDefinitionSheet from "@/components/schema-definition-sheet";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -25,9 +26,8 @@ import { useEffect } from "react";
 export default function HomePage() {
   const { model, setTarget, addEntityToModel, generateSchema } = useAppStore();
 
-  // add test entity, TODO: remove
+  // add testing entities, TODO: remove
   useEffect(() => {
-    console.log("adding model");
     addEntityToModel({
       id: crypto.randomUUID(),
       name: "Student",
@@ -89,7 +89,7 @@ export default function HomePage() {
       ],
     });
   }, []);
-  console.log(model);
+
   const schema = generateSchema();
 
   return (
@@ -97,13 +97,7 @@ export default function HomePage() {
       <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
         <ModeToggle />
         <div className="flex gap-4">
-          <AddEntityOrRelation
-            trigger={
-              <Button variant="outline" size="icon">
-                <Icons.add />
-              </Button>
-            }
-          />
+          <AddEntityOrRelation />
           <Select
             defaultValue="postgres"
             onValueChange={(value: "postgres" | "mysql") => {
@@ -137,6 +131,7 @@ export default function HomePage() {
           <Entity key={i} entity={entity} />
         ))}
       </section>
+      <GhostEntity />
     </main>
   );
 }

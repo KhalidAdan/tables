@@ -10,6 +10,11 @@ import {
   RelationType,
 } from "../schemas";
 
+type MousePosition = {
+  clientX: number;
+  clientY: number;
+} | null;
+
 export type State = {
   model: ModelType;
   setTarget: (target: ModelType["target"]) => void;
@@ -83,6 +88,8 @@ const useAppStore = create<State>((set, get) => ({
     entities: [],
     relations: [],
     target: "postgres",
+    placementMode: false,
+    ghostPosition: null,
   },
   addEntityToModel: (entity) => createEntity(entity, set),
   deleteEntityFromModel: (entityId) =>
@@ -152,7 +159,6 @@ const useAppStore = create<State>((set, get) => ({
     });
   },
   deleteAttributeFromEntity: (entityId, attributeId) => {
-    console.log(attributeId);
     set((state) => ({
       model: {
         ...state.model,
@@ -273,6 +279,7 @@ const useAppStore = create<State>((set, get) => ({
         target,
       },
     })),
+
   generateSchema: () => {
     const model = get().model;
 

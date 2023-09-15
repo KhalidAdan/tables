@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import useAppStore from "@/lib/store";
+import { useUIStore } from "@/lib/ui-store";
 import { EntitySchema, EntityType } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -22,8 +23,13 @@ import { Input } from "./ui/input";
 // ==> on click place it there
 // TODO: make sure the entity is not created on another entity
 
-export function AddEntityForm() {
+export function AddEntityForm({
+  setOpen,
+}: {
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const { addEntityToModel } = useAppStore();
+  const { setPlacementMode } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
@@ -32,13 +38,14 @@ export function AddEntityForm() {
       id: randomUuid,
       name: "",
       attributes: [],
-      relations: [],
       toAnchor: null,
       fromAnchor: null,
     },
   });
   const onSubmit: SubmitHandler<EntityType> = (values) => {
-    addEntityToModel({ ...values });
+    setOpen(false);
+    setPlacementMode(true);
+    //addEntityToModel({ ...values });
   };
   console.log(form.formState.errors);
 

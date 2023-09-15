@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { AddEntityForm } from "./add-entity-form";
 import { AddRelationForm } from "./add-relation-form";
+import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
   Dialog,
@@ -10,20 +12,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { Icons } from "./ui/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 //TODO: Add relations to model
 // -> create a through table
 // -> add attributes to through table, named after the parent tables
 
-export default function AddEntityOrRelation({
-  trigger,
-}: {
-  trigger: React.ReactNode;
-}) {
+export default function AddEntityOrRelation() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={open}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="icon" onClick={() => setOpen(!open)}>
+          <Icons.add />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Entity or Relation</DialogTitle>
@@ -37,14 +41,13 @@ export default function AddEntityOrRelation({
             <TabsContent value="add-entity">
               <Card className="border-none">
                 <CardContent className="px-0">
-                  <AddEntityForm />
+                  <AddEntityForm setOpen={setOpen} />
                 </CardContent>
               </Card>
             </TabsContent>
             <TabsContent value="add-relation">
               <Card className="border-none">
                 <CardContent className="space-y-2 px-0 pb-0">
-                  {/* choose two models */}
                   <AddRelationForm />
                 </CardContent>
               </Card>

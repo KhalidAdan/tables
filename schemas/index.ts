@@ -155,6 +155,13 @@ export const ModelSchema = z.object({
   entities: z.array(EntitySchema),
   relations: z.array(RelationSchema),
   target: TargetTypes,
+  placementMode: z.boolean().default(false),
+  ghostPosition: z
+    .object({
+      x: z.number(),
+      y: z.number(),
+    })
+    .nullable(),
 });
 
 /**
