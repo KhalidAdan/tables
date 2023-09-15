@@ -13,6 +13,7 @@ import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 import { EntitySchema, EntityType } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -29,7 +30,8 @@ export function AddEntityForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { addEntityToModel } = useAppStore();
-  const { setPlacementMode } = useUIStore();
+  const { ghostPosition, setGhostPosition, placementMode, setPlacementMode } =
+    useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
@@ -42,12 +44,29 @@ export function AddEntityForm({
       fromAnchor: null,
     },
   });
-  const onSubmit: SubmitHandler<EntityType> = (values) => {
+
+  const onSubmit: SubmitHandler<EntityType> = useCallback((values) => {
     setOpen(false);
     setPlacementMode(true);
-    //addEntityToModel({ ...values });
-  };
-  console.log(form.formState.errors);
+
+    const onMouseUp = () => {
+      const latestGhostPosition = useUIStore.getState().ghostPosition;
+      if (!latestGhostPosition) return;
+
+      setGhostPosition(null);
+      setPlacementMode(false);
+
+      addEntityToModel({
+        ...values,
+        x: latestGhostPosition.clientX ?? undefined,
+        y: latestGhostPosition.clientY ?? undefined,
+      });
+
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mouseup", onMouseUp);
+  }, []);
 
   return (
     <Form {...form}>

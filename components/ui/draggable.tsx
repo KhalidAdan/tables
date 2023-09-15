@@ -2,7 +2,7 @@
 
 import useAppStore from "@/lib/store";
 import { EntityType } from "@/schemas";
-import React from "react";
+import React, { MouseEventHandler } from "react";
 
 export default function Draggable({
   children,
@@ -14,7 +14,7 @@ export default function Draggable({
   const ref = React.useRef<HTMLDivElement | null>(null);
   const state = useAppStore();
 
-  const handleMouseDown = (event: any) => {
+  const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
     event.stopPropagation();
     if (ref.current) {
       const startX = event.clientX - ref.current.getBoundingClientRect().left;
@@ -39,7 +39,7 @@ export default function Draggable({
   return (
     <div
       ref={ref}
-      className="w-min h-min z-10 p-4"
+      className="w-min h-min z-10 p-4 "
       onMouseDown={handleMouseDown}
       style={{
         position: "absolute",
