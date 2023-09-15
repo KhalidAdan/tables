@@ -19,13 +19,12 @@ export type EntityType = {
   fromAnchor: AnchorType | null;
   toAnchor: AnchorType | null;
   attributes: AttributeType[];
-  relations: RelationType[];
 };
 
 export const Identifier = z.string().uuid(); // if I decide to use a DB i'll let it generate the uuids
 
 const AttributeTypes = z.enum([
-  "serial",
+  "identifier",
   "string",
   "number",
   "json",
@@ -41,6 +40,10 @@ const AttributeTypes = z.enum([
 // Postgres https://www.postgresql.org/docs/9.1/datatype-enum.html
 // Seems like they store case sensitive strings under the hood
 
+// CHECK CONSTRAINTS:
+// MySQL8: https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html // email: (`email` REGEXP "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$");
+// Postgres: https://www.postgresql.org/docs/9.1/ddl-constraints.html // email: CHECK (email ~* '^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$')
+
 export const AttributeSchema = z
   .object({
     id: Identifier,
@@ -50,6 +53,7 @@ export const AttributeSchema = z
     nullable: z.boolean(),
     unique: z.boolean(),
     default: z.any().optional(),
+    foreignKey: z.boolean().optional(),
   })
   .refine(
     (data) => {
@@ -57,8 +61,7 @@ export const AttributeSchema = z
       if (data.nullable && data.primaryKey) return false;
       if (data.nullable) return true;
       switch (data.type) {
-        case "serial":
-          console.log("serial", data.default, typeof data.default);
+        case "identifier":
           return typeof data.default === "number";
         case "string":
           return typeof data.default === "string";
@@ -109,17 +112,39 @@ export const EntitySchema: z.ZodType<EntityType> = z.object({
   fromAnchor: Anchor,
   toAnchor: Anchor,
   attributes: z.array(AttributeSchema),
-  relations: z.array(z.lazy(() => RelationSchema)),
 });
+
+export const relations = [
+  {
+    key: "one-to-one",
+    value: "One to One",
+  },
+  {
+    key: "one-to-many",
+    value: "One to Many",
+  },
+  {
+    key: "many-to-many",
+    value: "Many to Many",
+  },
+] as const;
+
+export type RelationKeyType = (typeof relations)[number]["key"];
+
+export type AddRelationFormProps = {
+  id: string;
+  fromEntityId: string;
+  toEntityId: string;
+  type: RelationKeyType;
+};
 
 export const RelationSchema = z.object({
   id: Identifier,
   fromEntity: z.lazy(() => EntitySchema),
   toEntity: z.lazy(() => EntitySchema),
-  type: z.enum(["one-to-many", "many-to-one", "many-to-many"] as const),
+  type: z.enum(["one-to-one", "one-to-many", "many-to-many"] as const),
 });
 
-// TODO: support mysql
 const targets = ["postgres", "mysql", "prisma"] as const;
 
 const TargetTypes = z.enum(targets);

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar
@@ -38,39 +38,59 @@ export default function HomePage() {
       attributes: [
         {
           id: crypto.randomUUID(),
-          name: "id",
-          type: "serial",
+          name: "ID",
+          type: "identifier",
           primaryKey: true,
           unique: false,
           nullable: false,
         },
         {
           id: crypto.randomUUID(),
-          name: "email",
+          name: "Email",
           type: "string",
-          primaryKey: true,
+          primaryKey: false,
           unique: true,
           nullable: false,
         },
+        {
+          id: crypto.randomUUID(),
+          name: "Phone Number",
+          type: "string",
+          primaryKey: false,
+          unique: false,
+          nullable: true,
+        },
       ],
-      relations: [],
+    });
+    addEntityToModel({
+      id: crypto.randomUUID(),
+      name: "Class",
+      x: 1000,
+      y: 100,
+      fromAnchor: null,
+      toAnchor: null,
+      attributes: [
+        {
+          id: crypto.randomUUID(),
+          name: "ID",
+          type: "identifier",
+          primaryKey: true,
+          unique: false,
+          nullable: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Name of Class",
+          type: "string",
+          primaryKey: false,
+          unique: false,
+          nullable: false,
+        },
+      ],
     });
   }, []);
 
-  const relevantEntityData = useMemo(() => {
-    return model.entities.map(({ fromAnchor, toAnchor, x, y, ...rest }) => {
-      return {
-        ...rest,
-        fromAnchor: null,
-        toAnchor: null,
-      };
-    });
-  }, [model.entities]);
-
-  const schema = useMemo(() => {
-    return generateSchema(relevantEntityData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [relevantEntityData]);
+  const schema = generateSchema();
 
   return (
     <main className="h-full">

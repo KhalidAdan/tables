@@ -1,12 +1,12 @@
 import { schemaStrategies } from "@/services/generators";
 import { create } from "zustand";
 import {
+  AddRelationFormProps,
   AttributeSchema,
   AttributeType,
   EntitySchema,
   EntityType,
   ModelType,
-  RelationSchema,
   RelationType,
 } from "../schemas";
 
@@ -14,7 +14,7 @@ export type State = {
   model: ModelType;
   setTarget: (target: ModelType["target"]) => void;
   // entity actions
-  addEntityToModel: (entity: EntityType) => void;
+  addEntityToModel: (entity: EntityType) => EntityType;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
   setEntityPosition: (
     entityId: EntityType["id"],
@@ -40,17 +40,40 @@ export type State = {
     attributeId: AttributeType["id"],
     type: AttributeType["type"]
   ) => void;
+  setAttributeDefault: (
+    entityId: EntityType["id"],
+    attributeId: AttributeType["id"],
+    defaultVal: AttributeType["default"]
+  ) => void;
+  setAttributeNullable: (
+    entityId: EntityType["id"],
+    attributeId: AttributeType["id"],
+    nullable: AttributeType["nullable"]
+  ) => void;
+  setAttributeUnique: (
+    entityId: EntityType["id"],
+    attributeId: AttributeType["id"],
+    unique: AttributeType["unique"]
+  ) => void;
   // relation actions
-  addRelationToModel: (relation: RelationType) => void;
+  addRelationToModel: (relation: AddRelationFormProps) => EntityType | void;
   deleteRelationFromModel: (relationId: RelationType["id"]) => void;
   // export schema
-  generateSchema: (
-    entityData: Omit<EntityType, "x" | "y" | "fromAnchor" | "toAnchor">[]
-  ) => string;
+  generateSchema: () => string;
 };
 
 export const getEntityById = (state: State, entityId: EntityType["id"]) => {
   const entity = state.model.entities.find((entity) => entity.id === entityId);
+  return entity;
+};
+
+export const getEntityByAttributeId = (
+  state: State,
+  attributeId: AttributeType["id"]
+) => {
+  const entity = state.model.entities.find((entity) =>
+    entity.attributes.find((attribute) => attribute.id === attributeId)
+  );
   return entity;
 };
 
@@ -61,19 +84,7 @@ const useAppStore = create<State>((set, get) => ({
     relations: [],
     target: "postgres",
   },
-  addEntityToModel: (entity) => {
-    try {
-      EntitySchema.parse(entity);
-      set((state) => ({
-        model: {
-          ...state.model,
-          entities: [...state.model.entities, entity],
-        },
-      }));
-    } catch (error) {
-      console.error("An error occured while adding the model", error);
-    }
-  },
+  addEntityToModel: (entity) => createEntity(entity, set),
   deleteEntityFromModel: (entityId) =>
     set((state) => ({
       model: {
@@ -141,6 +152,7 @@ const useAppStore = create<State>((set, get) => ({
     });
   },
   deleteAttributeFromEntity: (entityId, attributeId) => {
+    console.log(attributeId);
     set((state) => ({
       model: {
         ...state.model,
@@ -173,17 +185,75 @@ const useAppStore = create<State>((set, get) => ({
       },
     }));
   },
+  setAttributeDefault: (entityId, attributeId, defaultVal) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.attributes = entity.attributes.map((attribute) => {
+              if (attribute.id === attributeId) {
+                attribute.default = defaultVal;
+              }
+              return attribute;
+            });
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+  setAttributeNullable: (entityId, attributeId, nullable) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.attributes = entity.attributes.map((attribute) => {
+              if (attribute.id === attributeId) {
+                attribute.nullable = nullable;
+              }
+              return attribute;
+            });
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+  setAttributeUnique: (entityId, attributeId, unique) => {
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: state.model.entities.map((entity) => {
+          if (entity.id === entityId) {
+            entity.attributes = entity.attributes.map((attribute) => {
+              if (attribute.id === attributeId) {
+                attribute.unique = unique;
+              }
+              return attribute;
+            });
+          }
+          return entity;
+        }),
+      },
+    }));
+  },
+
   addRelationToModel: (relation) => {
-    try {
-      RelationSchema.parse(relation);
-      set((state) => ({
-        model: {
-          ...state.model,
-          relations: [...state.model.relations, relation],
-        },
-      }));
-    } catch (error) {
-      console.error("An error occured while adding the relation", error);
+    // TODO: add zod parsing for relation
+    switch (relation.type) {
+      case "one-to-one":
+        createOneToManyRelation(get, relation, set); // Don't tell anyone >:)
+        break;
+      case "one-to-many":
+        createOneToManyRelation(get, relation, set);
+        break;
+      case "many-to-many":
+        createManyToManyRelation(get, relation, set);
+        break;
+      default:
+        throw new Error(`Unknown relation type: ${relation.type}`);
     }
   },
 
@@ -203,11 +273,8 @@ const useAppStore = create<State>((set, get) => ({
         target,
       },
     })),
-  generateSchema: (entityData) => {
-    const model = {
-      ...get().model,
-      entities: entityData,
-    };
+  generateSchema: () => {
+    const model = get().model;
 
     const strategy = schemaStrategies[model.target];
     if (strategy) {
@@ -219,5 +286,156 @@ const useAppStore = create<State>((set, get) => ({
     }
   },
 }));
+
+function createEntity(
+  entity: EntityType,
+  set: (
+    partial:
+      | State
+      | Partial<State>
+      | ((state: State) => State | Partial<State>),
+    replace?: boolean | undefined
+  ) => void
+) {
+  try {
+    const newEntity = EntitySchema.parse(entity);
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: [...state.model.entities, entity],
+      },
+    }));
+    return newEntity;
+  } catch (error) {
+    console.error("An error occured while adding the model", error);
+    throw error;
+  }
+}
+
+function createOneToManyRelation(
+  get: () => State,
+  relation: AddRelationFormProps,
+  set: (
+    partial:
+      | State
+      | Partial<State>
+      | ((state: State) => State | Partial<State>),
+    replace?: boolean | undefined
+  ) => void
+) {
+  const fromEntity = getEntityById(get(), relation.fromEntityId);
+  const toEntity = getEntityById(get(), relation.toEntityId);
+
+  if (!fromEntity || !toEntity) {
+    throw new Error(
+      `Entity not found by id: ${relation.fromEntityId} or ${relation.toEntityId}`
+    );
+  }
+
+  // create attribute on toEntity
+  const attribute: AttributeType = {
+    id: crypto.randomUUID(),
+    name: `${fromEntity.name.toLowerCase()}Id`,
+    type: "identifier",
+    primaryKey: false,
+    nullable: false,
+    unique: false,
+    foreignKey: true,
+  };
+  set((state) => ({
+    model: {
+      ...state.model,
+      entities: state.model.entities.map((entity) => {
+        if (entity.id === toEntity.id) {
+          entity.attributes.push(attribute);
+        }
+        return entity;
+      }),
+    },
+  }));
+
+  // create relation
+  set((state) => ({
+    model: {
+      ...state.model,
+      relations: [
+        ...state.model.relations,
+        {
+          id: relation.id,
+          fromEntity,
+          toEntity,
+          type: relation.type,
+        },
+      ],
+    },
+  }));
+}
+
+function createManyToManyRelation(
+  get: () => State,
+  relation: AddRelationFormProps,
+  set: (
+    partial:
+      | State
+      | Partial<State>
+      | ((state: State) => State | Partial<State>),
+    replace?: boolean | undefined
+  ) => void
+) {
+  const fromEntity = getEntityById(get(), relation.fromEntityId);
+  const toEntity = getEntityById(get(), relation.toEntityId);
+
+  if (!fromEntity || !toEntity) {
+    throw new Error(
+      `Entity not found by id: ${relation.fromEntityId} or ${relation.toEntityId}`
+    );
+  }
+
+  const throughEntity: EntityType = createEntity(
+    {
+      id: crypto.randomUUID(),
+      name: `${fromEntity.name}_${toEntity.name}`,
+      x: 0,
+      y: 0,
+      fromAnchor: null,
+      toAnchor: null,
+      attributes: [
+        {
+          id: crypto.randomUUID(),
+          name: `${fromEntity.name.toLowerCase()}Id`,
+          type: "identifier",
+          primaryKey: false,
+          nullable: false,
+          unique: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: `${toEntity.name.toLowerCase()}Id`,
+          type: "identifier",
+          primaryKey: false,
+          nullable: false,
+          unique: false,
+        },
+      ],
+    },
+    set
+  );
+
+  // create two relations to throughEntity
+  set((state) => ({
+    model: {
+      ...state.model,
+      relations: [
+        ...state.model.relations,
+        {
+          id: crypto.randomUUID(),
+          fromEntity,
+          toEntity,
+          type: "many-to-many",
+        },
+      ],
+    },
+  }));
+}
 
 export default useAppStore;

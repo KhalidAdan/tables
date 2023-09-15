@@ -7,7 +7,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useEffect } from "react";
 import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 
@@ -45,7 +44,6 @@ export default function SchemaDefinitionSheet({
   target: "postgres" | "mysql" | "prisma";
   schema: string;
 }) {
-  useEffect(() => console.log("re-render"));
   return (
     <Sheet>
       <SheetTrigger asChild>{sheetTrigger}</SheetTrigger>

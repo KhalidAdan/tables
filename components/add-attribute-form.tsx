@@ -37,7 +37,6 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
     },
   });
   const onSubmit: SubmitHandler<AttributeType> = (values: AttributeType) => {
-    console.log(values);
     addAttributeToEntity(entity.id, values);
   };
   console.log(form.formState.errors);
@@ -74,7 +73,7 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Select attribute type</SelectLabel>
-                      <SelectItem value="serial">Serial</SelectItem>
+                      <SelectItem value="identifier">Identifier</SelectItem>
                       <SelectItem value="string">String</SelectItem>
                       <SelectItem value="number">Number</SelectItem>
                       <SelectItem value="boolean">Boolean</SelectItem>

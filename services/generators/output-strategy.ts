@@ -6,7 +6,9 @@ export abstract class AbstractOutputStrategy {
   toSnakeCase = (str: string): string => {
     return str
       .replace(/\W+/g, " ")
-      .split(/ |\B(?=[A-Z])/)
+      .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")
+      .replace(/([a-z\d])([A-Z])/g, "$1_$2")
+      .split(" ")
       .map((word) => word.toLowerCase())
       .join("_");
   };

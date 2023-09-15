@@ -1,4 +1,4 @@
-import { ModelType } from "@/schemas";
+import { AttributeType, ModelType } from "@/schemas";
 import { AbstractOutputStrategy } from "./output-strategy";
 
 export class PostgresStrategy extends AbstractOutputStrategy {
@@ -10,36 +10,34 @@ export class PostgresStrategy extends AbstractOutputStrategy {
       let uniqueAttributes = [];
       sqlOutput += `CREATE TABLE ${this.toSnakeCase(nty.name)} (\n`;
       for (const attr of nty.attributes) {
+        if (attr.foreignKey) continue;
         sqlOutput += `  ${this.toSnakeCase(attr.name)} ${String(
           this.columnType(attr.type)
         ).toUpperCase()}`;
         sqlOutput += attr.primaryKey ? ` PRIMARY KEY` : "";
         sqlOutput += attr.default ? ` DEFAULT ${attr.default}` : "";
-        // not null
-        sqlOutput += attr.nullable && !attr.primaryKey ? "" : " NOT NULL";
+        sqlOutput = this.notNullColumns(sqlOutput, attr);
         sqlOutput +=
-          attr !== nty.attributes[nty.attributes.length - 1]
+          attr >= nty.attributes[nty.attributes.length - 1]
             ? `,\n`
             : attr.unique
+            ? `,\n`
+            : attr.foreignKey
             ? `,\n`
             : `\n`;
         attr.unique && uniqueAttributes.push(attr.name);
       }
-      for (const unique of uniqueAttributes) {
-        sqlOutput += `  UNIQUE (${this.toSnakeCase(unique)})`;
-        sqlOutput +=
-          unique !== uniqueAttributes[uniqueAttributes.length - 1]
-            ? `,\n`
-            : `\n`;
-      }
+      sqlOutput = this.foreignKeys(model, nty.id, sqlOutput, uniqueAttributes);
+      sqlOutput = this.uniqueColumns(uniqueAttributes, sqlOutput);
       sqlOutput += `);\n\n`;
     }
+
     return sqlOutput;
   }
 
   private columnType = (type: string): string => {
     switch (type) {
-      case "serial":
+      case "identifier":
         return "SERIAL";
       case "string":
         return "text";
@@ -59,4 +57,51 @@ export class PostgresStrategy extends AbstractOutputStrategy {
         throw new Error(`Unsupported field type: ${type}`);
     }
   };
+
+  private foreignKeys(
+    model: ModelType,
+    entityId: string,
+    sqlOutput: string,
+    uniqueAttributes: string[]
+  ) {
+    for (const relation of model.relations) {
+      if (relation.toEntity.id !== entityId) continue;
+      const toEntity = model.entities.find(
+        (entity) => entity.id === relation.toEntity.id
+      );
+      if (!toEntity)
+        throw new Error(`Entity not found: ${relation.toEntity.id}`);
+      const primaryKeyAttribute = toEntity.attributes.find(
+        (attr) => attr.primaryKey
+      );
+      if (!primaryKeyAttribute)
+        throw new Error(
+          `Primary key not found for entity: ${relation.toEntity.id}`
+        );
+      sqlOutput += `  ${this.toSnakeCase(
+        relation.fromEntity.name
+      )}_id int REFERENCES ${this.toSnakeCase(
+        relation.fromEntity.name
+      )}(${this.toSnakeCase(primaryKeyAttribute.name)}) ON DELETE NOT NULL`; // TODO: on delete behaviour
+
+      // if we have unique attributes, we need to add them after the foreign key so add a ,
+      uniqueAttributes.length > 0 ? (sqlOutput += `,\n`) : (sqlOutput += `\n`);
+    }
+    return sqlOutput;
+  }
+
+  private notNullColumns(sqlOutput: string, attr: AttributeType) {
+    sqlOutput += attr.nullable && !attr.primaryKey ? "" : " NOT NULL";
+
+    return sqlOutput;
+  }
+
+  private uniqueColumns(uniqueAttributes: string[], sqlOutput: string) {
+    for (const unique of uniqueAttributes) {
+      sqlOutput += `  UNIQUE (${this.toSnakeCase(unique)})`;
+      sqlOutput +=
+        unique !== uniqueAttributes[uniqueAttributes.length - 1] ? `,\n` : `\n`;
+    }
+    return sqlOutput;
+  }
 }

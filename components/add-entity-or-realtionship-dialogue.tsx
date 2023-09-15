@@ -1,6 +1,7 @@
 "use client";
 
 import { AddEntityForm } from "./add-entity-form";
+import { AddRelationForm } from "./add-relation-form";
 import { Card, CardContent } from "./ui/card";
 import {
   Dialog,
@@ -42,7 +43,10 @@ export default function AddEntityOrRelation({
             </TabsContent>
             <TabsContent value="add-relation">
               <Card className="border-none">
-                <CardContent className="space-y-2 px-0 pb-0"></CardContent>
+                <CardContent className="space-y-2 px-0 pb-0">
+                  {/* choose two models */}
+                  <AddRelationForm />
+                </CardContent>
               </Card>
             </TabsContent>
           </Tabs>

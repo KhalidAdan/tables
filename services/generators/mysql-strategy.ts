@@ -13,7 +13,7 @@ export class MySQLStrategy extends AbstractOutputStrategy {
         sqlOutput += `  ${this.toSnakeCase(attr.name)} ${String(
           this.columnType(attr.type)
         ).toUpperCase()}`;
-        if (attr.type === "serial") {
+        if (attr.type === "identifier") {
           sqlOutput += " AUTO_INCREMENT";
         }
         if (attr.primaryKey) {
@@ -49,7 +49,7 @@ export class MySQLStrategy extends AbstractOutputStrategy {
 
   private columnType = (type: string): string => {
     switch (type) {
-      case "serial":
+      case "identifier":
         return "INT";
       case "string":
         return "VARCHAR(255)";
