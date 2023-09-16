@@ -26,11 +26,10 @@ import { TypographyMuted } from "./ui/typography";
 export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   // TODO: disallow primary key fields to be nullable
   const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
-  const randomUuid = crypto.randomUUID();
+
   const form = useForm<AttributeType>({
     criteriaMode: "all",
     defaultValues: {
-      id: randomUuid,
       name: "",
       primaryKey: false,
       nullable: false,
@@ -38,7 +37,11 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
     },
   });
   const onSubmit: SubmitHandler<AttributeType> = (values: AttributeType) => {
-    addAttributeToEntity(entity.id, values);
+    const randomUuid = crypto.randomUUID();
+    addAttributeToEntity(entity.id, {
+      ...values,
+      id: randomUuid,
+    });
   };
   return (
     <Form {...form}>

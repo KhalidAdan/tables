@@ -38,7 +38,7 @@ export type State = {
   ) => void;
   deleteAttributeFromEntity: (
     entityId: EntityType["id"],
-    attributeId: AttributeType["id"]
+    attributeId: AttributeType
   ) => void;
   editAttributeType: (
     entityId: EntityType["id"],
@@ -124,8 +124,11 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.fromAnchor = fromAnchor;
-            entity.toAnchor = toAnchor;
+            return {
+              ...entity,
+              fromAnchor,
+              toAnchor,
+            };
           }
           return entity;
         }),
@@ -158,17 +161,69 @@ const useAppStore = create<State>((set, get) => ({
       };
     });
   },
-  deleteAttributeFromEntity: (entityId, attributeId) => {
-    // if attr.foreignKey == true
-    // find relation with attr as foreign ket (attr is fk)
+  deleteAttributeFromEntity: (entityId, attribute) => {
+    console.log("Deleting attribute", attribute);
+    //if attr.relationKey is not undefined
+    if (attribute.relationKey) {
+      // find relation that attr.relationKey belongs to
+      const relation = get().model.relations.find(
+        (relation) => relation.id === attribute.relationKey
+      );
+      if (!relation)
+        throw new Error(
+          `Relation not found, but relationKey was present on attribute: ${attribute.relationKey}`
+        );
+
+      if (relation.type === "many-to-many") {
+        // set relationKey to null where attr.relationKey === relationKey on throughEntity
+        set((state) => ({
+          model: {
+            ...state.model,
+            entities: state.model.entities.map((entity) => {
+              if (entity.id === relation.throughEntity?.id) {
+                const newAttributes = entity.attributes.map((attr) => {
+                  if (attr.relationKey === attribute.relationKey) {
+                    return {
+                      ...attr,
+                      relationKey: undefined,
+                    };
+                  }
+                  return attr;
+                });
+                return {
+                  ...entity,
+                  attributes: newAttributes,
+                };
+              }
+              return entity;
+            }),
+          },
+        }));
+      }
+
+      // delete relation
+      set((state) => ({
+        model: {
+          ...state.model,
+          relations: state.model.relations.filter(
+            (relation) => relation.id !== attribute.relationKey
+          ),
+        },
+      }));
+    }
+    // // delete attribute
     set((state) => ({
       model: {
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.attributes = entity.attributes.filter(
-              (attribute) => attribute.id !== attributeId
-            );
+            const newAttributes = entity.attributes.filter((attr) => {
+              return attr.id !== attribute.id;
+            });
+            return {
+              ...entity,
+              attributes: newAttributes,
+            };
           }
           return entity;
         }),
@@ -181,12 +236,15 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.attributes = entity.attributes.map((attribute) => {
-              if (attribute.id === attributeId) {
-                attribute.type = type;
-              }
-              return attribute;
-            });
+            return {
+              ...entity,
+              attributes: entity.attributes.map((attribute) => {
+                if (attribute.id === attributeId) {
+                  return { ...attribute, type: type };
+                }
+                return attribute;
+              }),
+            };
           }
           return entity;
         }),
@@ -199,12 +257,15 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.attributes = entity.attributes.map((attribute) => {
-              if (attribute.id === attributeId) {
-                attribute.default = defaultVal;
-              }
-              return attribute;
-            });
+            return {
+              ...entity,
+              attributes: entity.attributes.map((attribute) => {
+                if (attribute.id === attributeId) {
+                  return { ...attribute, default: defaultVal };
+                }
+                return attribute;
+              }),
+            };
           }
           return entity;
         }),
@@ -217,12 +278,15 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.attributes = entity.attributes.map((attribute) => {
-              if (attribute.id === attributeId) {
-                attribute.nullable = nullable;
-              }
-              return attribute;
-            });
+            return {
+              ...entity,
+              attributes: entity.attributes.map((attribute) => {
+                if (attribute.id === attributeId) {
+                  return { ...attribute, nullable: nullable };
+                }
+                return attribute;
+              }),
+            };
           }
           return entity;
         }),
@@ -235,12 +299,15 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            entity.attributes = entity.attributes.map((attribute) => {
-              if (attribute.id === attributeId) {
-                attribute.unique = unique;
-              }
-              return attribute;
-            });
+            return {
+              ...entity,
+              attributes: entity.attributes.map((attribute) => {
+                if (attribute.id === attributeId) {
+                  return { ...attribute, unique: unique };
+                }
+                return attribute;
+              }),
+            };
           }
           return entity;
         }),
@@ -437,7 +504,7 @@ function createManyToManyRelation(
       relations: [
         ...state.model.relations,
         {
-          id: crypto.randomUUID(),
+          id: relation.id,
           fromEntity,
           toEntity,
           throughEntity,

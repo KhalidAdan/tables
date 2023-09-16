@@ -39,7 +39,6 @@ export function AddRelationForm({
 
   const onSubmit: SubmitHandler<AddRelationFormProps> = (values) => {
     setOpen(false);
-    console.log(values);
     // call addRelationToModel
     addRelationToModel(values);
   };

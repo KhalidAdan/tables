@@ -35,8 +35,14 @@ export const Attribute = ({
     >
       <div className="flex gap-4 col-span-3">
         <div className="flex gap-4 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-          <Badge variant="outline" className="cursor-pointer">
-            {attribute.type}
+          <Badge
+            variant="outline"
+            className={cn(
+              "cursor-pointer",
+              attribute.relationKey && "bg-green-600"
+            )}
+          >
+            {attribute.relationKey ? "relation" : attribute.type}
           </Badge>
           <Input
             defaultValue={attribute.name}
@@ -45,7 +51,10 @@ export const Attribute = ({
         </div>
         <Button
           variant="outline"
-          onClick={() => deleteAttributeFromEntity(entityId, attribute.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteAttributeFromEntity(entityId, attribute);
+          }}
         >
           <Icons.trash size="16" />
         </Button>

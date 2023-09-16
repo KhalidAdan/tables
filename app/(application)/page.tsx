@@ -34,6 +34,9 @@ export default function HomePage() {
 
   const schema = generateSchema();
 
+  console.log(model.relations);
+  console.log(model);
+
   return (
     <main className="h-full">
       <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
