@@ -20,7 +20,6 @@ import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 
 // TODO: right now, the schema generation relies on primary keys existing, so we need to disallow deleting attributes on FROM models that contribute to a relationship
-// TODO: When adding a relation a the new entity should use the ghost entity
 // TODO: continue separating UI concerns over data concerns, right now moving an entity regenerates the schema
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar?
@@ -28,7 +27,9 @@ import { useUIStore } from "@/lib/ui-store";
 
 export default function HomePage() {
   const { model, setTarget, generateSchema } = useAppStore();
-  const { placementMode } = useUIStore();
+  const {
+    ui: { placementMode },
+  } = useUIStore();
 
   const schema = generateSchema();
 

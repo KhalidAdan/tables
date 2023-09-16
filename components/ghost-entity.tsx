@@ -6,8 +6,11 @@ import { useEffect, useRef } from "react";
 
 export default function GhostEntity() {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { ghostPosition, placementMode, setGhostPosition, setPlacementMode } =
-    useUIStore();
+  const {
+    ui: { ghostPosition, placementMode },
+    setGhostPosition,
+    setPlacementMode,
+  } = useUIStore();
 
   useEffect(() => {
     const onMouseMove = (event: MouseEvent) => {

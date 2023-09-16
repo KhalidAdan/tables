@@ -49,7 +49,7 @@ export function AddEntityForm({
     setPlacementMode(true);
 
     const onMouseUp = () => {
-      const latestGhostPosition = useUIStore.getState().ghostPosition;
+      const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
       if (!latestGhostPosition) return;
 
       setGhostPosition(null);

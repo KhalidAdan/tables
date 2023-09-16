@@ -7,9 +7,11 @@ type MousePosition = {
 } | null;
 
 export type State = {
-  clientEntities: Pick<EntityType, "id" | "x" | "y">[];
-  placementMode: boolean;
-  ghostPosition: MousePosition;
+  ui: {
+    clientEntities: Pick<EntityType, "id" | "x" | "y">[];
+    placementMode: boolean;
+    ghostPosition: MousePosition;
+  };
   addClientEntity: (entity: EntityType) => void;
   setEntityPosition: (
     entityId: EntityType["id"],
@@ -21,41 +23,64 @@ export type State = {
 };
 
 export const useUIStore = create<State>((set, get) => ({
-  placementMode: false,
-  ghostPosition: null,
-  clientEntities: [],
+  ui: {
+    placementMode: false,
+    ghostPosition: null,
+    clientEntities: [],
+  },
   addClientEntity: (entity) =>
     set((state) => ({
-      clientEntities: [...state.clientEntities, entity],
+      ui: {
+        ...state.ui,
+        clientEntities: [...state.ui.clientEntities, entity],
+      },
     })),
 
   setEntityPosition: (entityId, x, y) => {
-    const entities = get().clientEntities;
+    const entities = get().ui.clientEntities;
     if (entities.length === 0) {
       set((state) => ({
-        clientEntities: [
-          {
-            id: entityId,
-            x,
-            y,
-          },
-        ],
+        ui: {
+          ...state.ui,
+          clientEntities: [
+            {
+              id: entityId,
+              x,
+              y,
+            },
+          ],
+        },
       }));
       return;
     }
     set((state) => ({
-      clientEntities: state.clientEntities.map((entity) => {
-        if (entity.id === entityId) {
-          return {
-            ...entity,
-            x,
-            y,
-          };
-        }
-        return entity;
-      }),
+      ui: {
+        ...state.ui,
+        clientEntities: state.ui.clientEntities.map((entity) => {
+          if (entity.id === entityId) {
+            return {
+              ...entity,
+              x,
+              y,
+            };
+          }
+          return entity;
+        }),
+      },
     }));
   },
-  setPlacementMode: (placementMode) => set({ placementMode }),
-  setGhostPosition: (ghostPosition) => set({ ghostPosition }),
+  setPlacementMode: (placementMode) =>
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        placementMode,
+      },
+    })),
+  setGhostPosition: (ghostPosition) =>
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        ghostPosition,
+      },
+    })),
 }));
