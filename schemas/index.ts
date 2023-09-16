@@ -98,8 +98,6 @@ const Anchor = z
 export const EntitySchema = z.object({
   id: Identifier,
   name: z.string(),
-  x: z.number().default(0),
-  y: z.number().default(0),
   fromAnchor: Anchor,
   toAnchor: Anchor,
   attributes: z.array(AttributeSchema),
@@ -127,8 +125,6 @@ export type AddRelationFormProps = {
   fromEntityId: string;
   toEntityId: string;
   type: RelationKeyType;
-  x: number | null;
-  y: number | null;
 };
 
 export const RelationSchema = z.object({

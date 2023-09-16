@@ -47,7 +47,7 @@ export default function SchemaDefinitionSheet({
           </Button>
         </div>
         <pre className="!max-w-2xl w-xl rounded-lg p-3 overflow-x-scroll h-full bg-background">
-          <code className=" text-green-500">{schema}</code>
+          <code dangerouslySetInnerHTML={{ __html: schema }}></code>
         </pre>
       </SheetContent>
     </Sheet>

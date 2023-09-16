@@ -15,10 +15,6 @@ import {
 import { Icons } from "./ui/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-//TODO: Add relations to model
-// -> create a through table
-// -> add attributes to through table, named after the parent tables
-
 export default function AddEntityOrRelation(
   { disabled } = { disabled: false }
 ) {

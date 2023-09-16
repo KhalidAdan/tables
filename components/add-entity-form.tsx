@@ -18,12 +18,6 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-// TODO: on create enter placement mode, then on click create entity
-// ==> close modal
-// ==> make an entity that follows the mouse
-// ==> on click place it there
-// TODO: make sure the entity is not created on another entity
-
 export function AddEntityForm({
   setOpen,
 }: {
@@ -54,15 +48,16 @@ export function AddEntityForm({
 
       setGhostPosition(null);
       setPlacementMode(false);
-      addEntityToModel({
-        ...values,
-      });
+
       addClientEntity({
         id: values.id,
         x: latestGhostPosition.clientX ?? undefined,
         y: latestGhostPosition.clientY ?? undefined,
         fromAchor: null,
         toAnchor: null,
+      });
+      addEntityToModel({
+        ...values,
       });
 
       document.removeEventListener("mouseup", onMouseUp);

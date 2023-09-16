@@ -30,7 +30,7 @@ export function AddRelationForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { model, addRelationToModel } = useAppStore();
-  const { setGhostPosition, setPlacementMode } = useUIStore();
+  const { setGhostPosition, setPlacementMode, addClientEntity } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
     defaultValues: {
@@ -52,8 +52,14 @@ export function AddRelationForm({
 
       addRelationToModel({
         ...values,
+      });
+
+      addClientEntity({
+        id: values.id,
         x: latestGhostPosition.clientX ?? undefined,
         y: latestGhostPosition.clientY ?? undefined,
+        fromAchor: null,
+        toAnchor: null,
       });
 
       document.removeEventListener("mouseup", onMouseUp);

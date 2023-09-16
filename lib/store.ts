@@ -267,7 +267,6 @@ const useAppStore = create<State>((set, get) => ({
   },
 
   addRelationToModel: (relation) => {
-    // TODO: add zod parsing for relation
     switch (relation.type) {
       case "one-to-one":
         createOneToManyRelation(get, relation, set); // Don't tell anyone >:)
@@ -418,10 +417,8 @@ function createManyToManyRelation(
   }
 
   const throughEntity: EntityType = {
-    id: crypto.randomUUID(),
+    id: createRelationValues.id,
     name: `${fromEntity.name}_${toEntity.name}`,
-    x: createRelationValues.x ?? 0,
-    y: createRelationValues.y ?? 0,
     fromAnchor: null,
     toAnchor: null,
     attributes: [
@@ -458,8 +455,6 @@ function createManyToManyRelation(
           toEntity,
           throughEntity,
           type: "many-to-many",
-          x: createRelationValues.x,
-          y: createRelationValues.y,
         },
       ],
     },
