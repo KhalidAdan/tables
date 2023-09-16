@@ -19,12 +19,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 // -> create a through table
 // -> add attributes to through table, named after the parent tables
 
-export default function AddEntityOrRelation() {
+export default function AddEntityOrRelation(
+  { disabled } = { disabled: false }
+) {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" onClick={() => setOpen(!open)}>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setOpen(!open)}
+          disabled={disabled}
+        >
           <Icons.add />
         </Button>
       </DialogTrigger>

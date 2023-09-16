@@ -1,6 +1,7 @@
 "use client";
 
 import useAppStore from "@/lib/store";
+import { useUIStore } from "@/lib/ui-store";
 import { AddRelationFormProps, relations } from "@/schemas";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
@@ -29,6 +30,7 @@ export function AddRelationForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { model, addRelationToModel } = useAppStore();
+  const { setGhostPosition, setPlacementMode } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
     defaultValues: {
@@ -39,8 +41,24 @@ export function AddRelationForm({
 
   const onSubmit: SubmitHandler<AddRelationFormProps> = (values) => {
     setOpen(false);
-    // call addRelationToModel
-    addRelationToModel(values);
+    setPlacementMode(true);
+
+    const onMouseUp = () => {
+      const latestGhostPosition = useUIStore.getState().ghostPosition;
+      if (!latestGhostPosition) return;
+
+      setGhostPosition(null);
+      setPlacementMode(false);
+
+      addRelationToModel({
+        ...values,
+        x: latestGhostPosition.clientX ?? undefined,
+        y: latestGhostPosition.clientY ?? undefined,
+      });
+
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+    document.addEventListener("mouseup", onMouseUp);
   };
 
   return (

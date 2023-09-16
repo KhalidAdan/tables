@@ -127,6 +127,8 @@ export type AddRelationFormProps = {
   fromEntityId: string;
   toEntityId: string;
   type: RelationKeyType;
+  x: number | null;
+  y: number | null;
 };
 
 export const RelationSchema = z.object({
@@ -135,6 +137,8 @@ export const RelationSchema = z.object({
   toEntity: z.lazy(() => EntitySchema),
   throughEntity: z.lazy(() => EntitySchema).optional(),
   type: z.enum(["one-to-one", "one-to-many", "many-to-many"] as const),
+  x: z.number().nullish(),
+  y: z.number().nullish(),
 });
 
 const targets = ["postgres", "mysql", "prisma"] as const;

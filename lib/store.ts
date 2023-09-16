@@ -448,7 +448,7 @@ function createOneToManyRelation(
 
 function createManyToManyRelation(
   get: () => State,
-  relation: AddRelationFormProps,
+  createRelationValues: AddRelationFormProps,
   set: (
     partial:
       | State
@@ -457,20 +457,20 @@ function createManyToManyRelation(
     replace?: boolean | undefined
   ) => void
 ) {
-  const fromEntity = getEntityById(get(), relation.fromEntityId);
-  const toEntity = getEntityById(get(), relation.toEntityId);
+  const fromEntity = getEntityById(get(), createRelationValues.fromEntityId);
+  const toEntity = getEntityById(get(), createRelationValues.toEntityId);
 
   if (!fromEntity || !toEntity) {
     throw new Error(
-      `Entity not found by id: ${relation.fromEntityId} or ${relation.toEntityId}`
+      `Entity not found by id: ${createRelationValues.fromEntityId} or ${createRelationValues.toEntityId}`
     );
   }
 
   const throughEntity: EntityType = {
     id: crypto.randomUUID(),
     name: `${fromEntity.name}_${toEntity.name}`,
-    x: 0,
-    y: 0,
+    x: createRelationValues.x ?? 0,
+    y: createRelationValues.y ?? 0,
     fromAnchor: null,
     toAnchor: null,
     attributes: [
@@ -481,7 +481,7 @@ function createManyToManyRelation(
         primaryKey: false,
         nullable: false,
         unique: false,
-        relationKey: relation.id,
+        relationKey: createRelationValues.id,
       },
       {
         id: crypto.randomUUID(),
@@ -490,7 +490,7 @@ function createManyToManyRelation(
         primaryKey: false,
         nullable: false,
         unique: false,
-        relationKey: relation.id,
+        relationKey: createRelationValues.id,
       },
     ],
   };
@@ -502,11 +502,13 @@ function createManyToManyRelation(
       relations: [
         ...state.model.relations,
         {
-          id: relation.id,
+          id: createRelationValues.id,
           fromEntity,
           toEntity,
           throughEntity,
           type: "many-to-many",
+          x: createRelationValues.x,
+          y: createRelationValues.y,
         },
       ],
     },

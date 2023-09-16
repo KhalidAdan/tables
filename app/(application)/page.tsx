@@ -19,7 +19,7 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 
-// TODO: right now, the schema generation relies on primaery keys existing, so we need to disaloow deleting attributes on FROM models that contribute to a relationship
+// TODO: right now, the schema generation relies on primary keys existing, so we need to disallow deleting attributes on FROM models that contribute to a relationship
 // TODO: When adding a relation a the new entity should use the ghost entity
 // TODO: continue separating UI concerns over data concerns, right now moving an entity regenerates the schema
 // TODO: Relationship lines and crow's feet
@@ -37,7 +37,7 @@ export default function HomePage() {
       <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
         <ModeToggle />
         <div className="flex gap-4">
-          <AddEntityOrRelation />
+          <AddEntityOrRelation disabled={placementMode} />
           <Select
             defaultValue="postgres"
             onValueChange={(value: "postgres" | "mysql") => {
