@@ -162,7 +162,6 @@ const useAppStore = create<State>((set, get) => ({
     });
   },
   deleteAttributeFromEntity: (entityId, attribute) => {
-    console.log("Deleting attribute", attribute);
     //if attr.relationKey is not undefined
     if (attribute.relationKey) {
       // find relation that attr.relationKey belongs to
@@ -458,7 +457,6 @@ function createManyToManyRelation(
     replace?: boolean | undefined
   ) => void
 ) {
-  console.log("Creating many to many relation");
   const fromEntity = getEntityById(get(), relation.fromEntityId);
   const toEntity = getEntityById(get(), relation.toEntityId);
 

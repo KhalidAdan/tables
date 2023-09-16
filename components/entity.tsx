@@ -23,14 +23,17 @@ const Entity = ({ entity }: EntityProps) => {
   const hasAttributes = attributes.length > 0;
   const { setAnchor } = useAppStore();
 
-  const myCallbackRef = useCallback((node: HTMLDivElement) => {
-    if (node !== null) {
-      const { x, width, height } = node.getBoundingClientRect();
-      const fromAnchor = { x, y: height / 2 };
-      const toAnchor = { x: x + width, y: height / 2 };
-      setAnchor(entity.id, fromAnchor, toAnchor);
-    }
-  }, []);
+  const myCallbackRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (node !== null) {
+        const { x, width, height } = node.getBoundingClientRect();
+        const fromAnchor = { x, y: height / 2 };
+        const toAnchor = { x: x + width, y: height / 2 };
+        setAnchor(entity.id, fromAnchor, toAnchor);
+      }
+    },
+    [entity.id, setAnchor]
+  );
 
   return (
     <Draggable entity={entity}>

@@ -19,8 +19,6 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 
-// TODO: Deleting entity in relation should delete relation
-// TODO; When creating an attribute, if you make an identifier, disable nullable and unique checkboxes
 // TODO: right now, the schema generation relies on primaery keys existing, so we need to disaloow deleting attributes on FROM models that contribute to a relationship
 // TODO: When adding a relation a the new entity should use the ghost entity
 // TODO: continue separating UI concerns over data concerns, right now moving an entity regenerates the schema
@@ -33,9 +31,6 @@ export default function HomePage() {
   const { placementMode } = useUIStore();
 
   const schema = generateSchema();
-
-  console.log(model.relations);
-  console.log(model);
 
   return (
     <main className="h-full">

@@ -1,5 +1,6 @@
 import useAppStore from "@/lib/store";
 import { AttributeType, EntityType } from "@/schemas";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -24,7 +25,7 @@ import {
 import { TypographyMuted } from "./ui/typography";
 
 export default function AddAttributeForm({ entity }: { entity: EntityType }) {
-  // TODO: disallow primary key fields to be nullable
+  const [primaryKey, setPrimaryKey] = useState<boolean>(false);
   const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
 
   const form = useForm<AttributeType>({
@@ -118,7 +119,18 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
                   name={field.name}
                   checked={field.value}
                   value={field.value as any}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(checked) => {
+                    setPrimaryKey(!!checked);
+
+                    const syntheticEvent = {
+                      target: {
+                        name: field.name,
+                        value: checked,
+                      },
+                    };
+
+                    field.onChange(syntheticEvent);
+                  }}
                 />
               </FormControl>
               <FormLabel htmlFor="primaryKey">Primary key</FormLabel>
@@ -138,6 +150,7 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
                   checked={field.value}
                   value={field.value as any}
                   onCheckedChange={field.onChange}
+                  disabled={primaryKey}
                 />
               </FormControl>
               <FormLabel htmlFor="primaryKey">Nullable</FormLabel>
@@ -157,6 +170,7 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
                   checked={field.value}
                   value={field.value as any}
                   onCheckedChange={field.onChange}
+                  disabled={primaryKey}
                 />
               </FormControl>
               <FormLabel htmlFor="primaryKey">
