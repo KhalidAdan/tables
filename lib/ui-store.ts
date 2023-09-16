@@ -1,25 +1,25 @@
-import { EntityType } from "@/schemas";
+import { ClientEntityType, MousePositionType } from "@/schemas/ui";
 import { create } from "zustand";
-
-type MousePosition = {
-  clientX: number;
-  clientY: number;
-} | null;
 
 export type State = {
   ui: {
-    clientEntities: Pick<EntityType, "id" | "x" | "y">[];
+    clientEntities: ClientEntityType[];
     placementMode: boolean;
-    ghostPosition: MousePosition;
+    ghostPosition: MousePositionType;
   };
-  addClientEntity: (entity: EntityType) => void;
+  addClientEntity: (entity: ClientEntityType) => void;
   setEntityPosition: (
-    entityId: EntityType["id"],
-    x: EntityType["x"],
-    y: EntityType["y"]
+    entityId: ClientEntityType["id"],
+    x: ClientEntityType["x"],
+    y: ClientEntityType["y"]
+  ) => void;
+  setAnchor: (
+    entityId: ClientEntityType["id"],
+    fromAnchor: ClientEntityType["fromAchor"],
+    toAnchor: ClientEntityType["toAnchor"]
   ) => void;
   setPlacementMode: (placementMode: boolean) => void;
-  setGhostPosition: (position: MousePosition) => void;
+  setGhostPosition: (position: MousePositionType) => void;
 };
 
 export const useUIStore = create<State>((set, get) => ({
@@ -38,7 +38,7 @@ export const useUIStore = create<State>((set, get) => ({
 
   setEntityPosition: (entityId, x, y) => {
     const entities = get().ui.clientEntities;
-    if (entities.length === 0) {
+    if (entities.length === 0)
       set((state) => ({
         ui: {
           ...state.ui,
@@ -47,12 +47,30 @@ export const useUIStore = create<State>((set, get) => ({
               id: entityId,
               x,
               y,
+              fromAchor: null,
+              toAnchor: null,
             },
           ],
         },
       }));
-      return;
-    }
+    else
+      set((state) => ({
+        ui: {
+          ...state.ui,
+          clientEntities: state.ui.clientEntities.map((entity) => {
+            if (entity.id === entityId) {
+              return {
+                ...entity,
+                x,
+                y,
+              };
+            }
+            return entity;
+          }),
+        },
+      }));
+  },
+  setAnchor: (entityId, fromAnchor, toAnchor) => {
     set((state) => ({
       ui: {
         ...state.ui,
@@ -60,8 +78,8 @@ export const useUIStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              x,
-              y,
+              fromAchor: fromAnchor,
+              toAnchor,
             };
           }
           return entity;

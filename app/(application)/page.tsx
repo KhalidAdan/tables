@@ -18,9 +18,9 @@ import {
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
+import { useMemo } from "react";
 
 // TODO: right now, the schema generation relies on primary keys existing, so we need to disallow deleting attributes on FROM models that contribute to a relationship
-// TODO: continue separating UI concerns over data concerns, right now moving an entity regenerates the schema
 // TODO: Relationship lines and crow's feet
 // TODO: Drag handle for sidebar?
 // TODO: Command pallette for quick actions? What would that look like?
@@ -31,7 +31,8 @@ export default function HomePage() {
     ui: { placementMode },
   } = useUIStore();
 
-  const schema = generateSchema();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only generate schema when model changes, not on drag or any other such behaviour
+  const schema = useMemo(() => generateSchema(), [model, generateSchema]);
 
   return (
     <main className="h-full">
@@ -68,9 +69,9 @@ export default function HomePage() {
         </div>
       </div>
       <section className="">
-        {model.entities.map((entity, i) => (
-          <Entity key={i} entity={entity} />
-        ))}
+        {model.entities.map((entity, i) => {
+          return <Entity key={i} entity={entity} />;
+        })}
       </section>
       {placementMode && <GhostEntity />}
     </main>

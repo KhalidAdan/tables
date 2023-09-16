@@ -30,7 +30,7 @@ export function AddEntityForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { addEntityToModel } = useAppStore();
-  const { setGhostPosition, setPlacementMode } = useUIStore();
+  const { setGhostPosition, setPlacementMode, addClientEntity } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
@@ -54,11 +54,15 @@ export function AddEntityForm({
 
       setGhostPosition(null);
       setPlacementMode(false);
-
       addEntityToModel({
         ...values,
+      });
+      addClientEntity({
+        id: values.id,
         x: latestGhostPosition.clientX ?? undefined,
         y: latestGhostPosition.clientY ?? undefined,
+        fromAchor: null,
+        toAnchor: null,
       });
 
       document.removeEventListener("mouseup", onMouseUp);

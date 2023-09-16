@@ -1,7 +1,7 @@
 "use client";
 
-import useAppStore from "@/lib/store";
-import { EntityType } from "@/schemas";
+import { useUIStore } from "@/lib/ui-store";
+import { ClientEntityType } from "@/schemas/ui";
 import React, { MouseEventHandler } from "react";
 
 export default function Draggable({
@@ -9,10 +9,13 @@ export default function Draggable({
   entity,
 }: {
   children: React.ReactNode;
-  entity: EntityType;
+  entity: ClientEntityType;
 }) {
   const ref = React.useRef<HTMLDivElement | null>(null);
-  const state = useAppStore();
+  const { setEntityPosition } = useUIStore();
+  const nty = useUIStore
+    .getState()
+    .ui.clientEntities.find((e) => e.id === entity.id);
 
   const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
     event.stopPropagation();
@@ -23,7 +26,7 @@ export default function Draggable({
       const onMouseMove = (event: MouseEvent) => {
         const newX = event.clientX - startX;
         const newY = event.clientY - startY;
-        state.setEntityPosition(entity.id, newX, newY);
+        setEntityPosition(entity.id, newX, newY);
       };
 
       const onMouseUp = () => {
@@ -39,12 +42,13 @@ export default function Draggable({
   return (
     <div
       ref={ref}
+      data-entity-id={nty?.id}
       className="w-min h-min z-10 p-4 "
       onMouseDown={handleMouseDown}
       style={{
         position: "absolute",
-        left: `${entity.x}px`,
-        top: `${entity.y}px`,
+        left: `${nty?.x}px`,
+        top: `${nty?.y}px`,
         cursor: "grab",
       }}
     >

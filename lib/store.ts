@@ -16,16 +16,7 @@ export type State = {
   // entity actions
   addEntityToModel: (entity: EntityType) => EntityType;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
-  setEntityPosition: (
-    entityId: EntityType["id"],
-    x: EntityType["x"],
-    y: EntityType["y"]
-  ) => void;
-  setAnchor: (
-    entityId: EntityType["id"],
-    fromAnchor: EntityType["fromAnchor"],
-    toAnchor: EntityType["toAnchor"]
-  ) => void;
+
   // attribute actions
   addAttributeToEntity: (
     entityId: EntityType["id"],
@@ -84,7 +75,9 @@ const useAppStore = create<State>((set, get) => ({
     relations: [],
     target: "postgres",
   },
-  addEntityToModel: (entity) => createEntity(entity, set),
+  addEntityToModel: (entity) => {
+    return createEntity(entity, set);
+  },
   deleteEntityFromModel: (entityId) =>
     set((state) => ({
       model: {
@@ -94,40 +87,6 @@ const useAppStore = create<State>((set, get) => ({
         ),
       },
     })),
-  setEntityPosition: (entityId, x, y) => {
-    set((state) => {
-      const updatedEntities = state.model.entities.map((entity) => {
-        if (entity.id === entityId) {
-          return { ...entity, x, y };
-        }
-        return entity;
-      });
-
-      return {
-        model: {
-          ...state.model,
-          entities: updatedEntities,
-        },
-      };
-    });
-  },
-  setAnchor: (entityId, fromAnchor, toAnchor) => {
-    set((state) => ({
-      model: {
-        ...state.model,
-        entities: state.model.entities.map((entity) => {
-          if (entity.id === entityId) {
-            return {
-              ...entity,
-              fromAnchor,
-              toAnchor,
-            };
-          }
-          return entity;
-        }),
-      },
-    }));
-  },
 
   addAttributeToEntity: (entityId, attribute) => {
     // parse attribute
@@ -346,7 +305,6 @@ const useAppStore = create<State>((set, get) => ({
 
     const strategy = schemaStrategies[model.target];
     if (strategy) {
-      console.log("Generating schema for target:", model.target);
       return strategy.generateSchema(model);
     } else {
       // Handle case where strategy is not found
@@ -370,7 +328,7 @@ function createEntity(
     set((state) => ({
       model: {
         ...state.model,
-        entities: [...state.model.entities, entity],
+        entities: [...state.model.entities, newEntity],
       },
     }));
     return newEntity;

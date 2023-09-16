@@ -1,6 +1,6 @@
 "use client";
 
-import useAppStore from "@/lib/store";
+import { useUIStore } from "@/lib/ui-store";
 import { EntityType } from "@/schemas";
 import { useCallback } from "react";
 import AddAttributeForm from "./add-attribute-form";
@@ -21,7 +21,7 @@ type EntityProps = { entity: EntityType };
 const Entity = ({ entity }: EntityProps) => {
   const attributes = entity.attributes;
   const hasAttributes = attributes.length > 0;
-  const { setAnchor } = useAppStore();
+  const { setAnchor } = useUIStore();
 
   const myCallbackRef = useCallback(
     (node: HTMLDivElement) => {
@@ -36,7 +36,15 @@ const Entity = ({ entity }: EntityProps) => {
   );
 
   return (
-    <Draggable entity={entity}>
+    <Draggable
+      entity={{
+        id: entity.id,
+        x: entity.x,
+        y: entity.y,
+        fromAchor: entity.fromAnchor,
+        toAnchor: entity.toAnchor,
+      }}
+    >
       <div
         ref={myCallbackRef}
         className="pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 bg-background "
