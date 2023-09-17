@@ -1,29 +1,27 @@
 "use client";
 
+import { useIsEntityIntersecting } from "@/lib/hooks/use-entity-intersecting";
+import { useGhostPosition } from "@/lib/hooks/use-ghost-position";
 import { useUIStore } from "@/lib/ui-store";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export default function GhostEntity() {
   const ref = useRef<HTMLDivElement | null>(null);
   const {
-    ui: { ghostPosition, placementMode },
+    ui: { ghostPosition, placementMode, clientEntities, isIntersecting },
     setGhostPosition,
     setPlacementMode,
+    setIntersecting,
   } = useUIStore();
 
-  useEffect(() => {
-    const onMouseMove = (event: MouseEvent) => {
-      setGhostPosition({
-        clientX: event.clientX,
-        clientY: event.clientY,
-      });
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-
-    return () => document.removeEventListener("mousemove", onMouseMove);
-  }, [ghostPosition, placementMode, setGhostPosition, setPlacementMode]);
+  useIsEntityIntersecting(ref, ghostPosition, clientEntities, setIntersecting);
+  useGhostPosition(
+    setGhostPosition,
+    ghostPosition,
+    placementMode,
+    setPlacementMode
+  );
 
   return (
     <>
@@ -32,8 +30,10 @@ export default function GhostEntity() {
           ref={ref}
           className={cn(
             ghostPosition
-              ? "pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 bg-background opacity-75 dark:opacity-50"
-              : "hidden"
+              ? "pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 opacity-75"
+              : "hidden",
+            isIntersecting ? "bg-[red]/25" : "bg-background",
+            "z-50"
           )}
           style={
             ghostPosition
@@ -45,7 +45,7 @@ export default function GhostEntity() {
               : undefined
           }
         >
-          <section className="-mx-6 -mt-6 border-b bg-accent rounded-t-lg pt-2 pl-6 pr-1 flex justify-between items-center opacity-50">
+          <section className="-mx-6 -mt-6 w-96 border-b bg-accent rounded-t-lg pt-2 pl-6 pr-1 flex justify-between items-center opacity-50">
             <div>New entity</div>
           </section>
           <p>Place your entity to start editing it&apos;s attributes!</p>

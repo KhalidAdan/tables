@@ -16,7 +16,7 @@ export const ClientEntity = z.object({
   id: Identifier,
   x: z.number(),
   y: z.number(),
-  fromAchor: Anchor,
+  fromAnchor: Anchor,
   toAnchor: Anchor,
 });
 

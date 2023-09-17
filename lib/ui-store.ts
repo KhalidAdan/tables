@@ -6,8 +6,10 @@ export type State = {
     clientEntities: ClientEntityType[];
     placementMode: boolean;
     ghostPosition: MousePositionType;
+    isIntersecting: boolean;
   };
   addClientEntity: (entity: ClientEntityType) => void;
+  deleteClientEntity: (entityId: ClientEntityType["id"]) => void;
   setEntityPosition: (
     entityId: ClientEntityType["id"],
     x: ClientEntityType["x"],
@@ -15,11 +17,32 @@ export type State = {
   ) => void;
   setAnchor: (
     entityId: ClientEntityType["id"],
-    fromAnchor: ClientEntityType["fromAchor"],
+    fromAnchor: ClientEntityType["fromAnchor"],
     toAnchor: ClientEntityType["toAnchor"]
   ) => void;
   setPlacementMode: (placementMode: boolean) => void;
   setGhostPosition: (position: MousePositionType) => void;
+  setIntersecting: (isIntersecting: boolean) => void;
+};
+
+export const checkIsIntersecting = (
+  ghostPosition: Pick<ClientEntityType, "x" | "y"> & { w: number; h: number },
+  entityPosition: Pick<ClientEntityType, "x" | "y"> & { w: number; h: number }
+) => {
+  // Calculate bottom-right coordinates for entity A
+  const aBottomRightX = ghostPosition.x + ghostPosition.w;
+  const aBottomRightY = ghostPosition.y + ghostPosition.h;
+
+  // Calculate bottom-right coordinates for entity B
+  const bBottomRightX = entityPosition.x + entityPosition.w;
+  const bBottomRightY = entityPosition.y + entityPosition.h;
+
+  return (
+    ghostPosition.x < bBottomRightX &&
+    aBottomRightX > entityPosition.x &&
+    ghostPosition.y < bBottomRightY &&
+    aBottomRightY > entityPosition.y
+  );
 };
 
 export const useUIStore = create<State>((set, get) => ({
@@ -27,12 +50,22 @@ export const useUIStore = create<State>((set, get) => ({
     placementMode: false,
     ghostPosition: null,
     clientEntities: [],
+    isIntersecting: false,
   },
   addClientEntity: (entity) =>
     set((state) => ({
       ui: {
         ...state.ui,
         clientEntities: [...state.ui.clientEntities, entity],
+      },
+    })),
+  deleteClientEntity: (entityId: ClientEntityType["id"]) =>
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        clientEntities: state.ui.clientEntities.filter(
+          (entity) => entity.id !== entityId
+        ),
       },
     })),
 
@@ -47,7 +80,7 @@ export const useUIStore = create<State>((set, get) => ({
               id: entityId,
               x,
               y,
-              fromAchor: null,
+              fromAnchor: null,
               toAnchor: null,
             },
           ],
@@ -78,7 +111,7 @@ export const useUIStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              fromAchor: fromAnchor,
+              fromAnchor: fromAnchor,
               toAnchor,
             };
           }
@@ -99,6 +132,13 @@ export const useUIStore = create<State>((set, get) => ({
       ui: {
         ...state.ui,
         ghostPosition,
+      },
+    })),
+  setIntersecting: (isIntersecting) =>
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        isIntersecting,
       },
     })),
 }));

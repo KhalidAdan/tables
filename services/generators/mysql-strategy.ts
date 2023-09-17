@@ -51,9 +51,9 @@ export class MySQLStrategy extends AbstractOutputStrategy {
     model: ModelType,
     entityId: string
   ): string | null {
-    const foreignKeys = model.relations.map((relation) =>
-      this.generateForeignKey(model, entityId, relation)
-    );
+    const foreignKeys = model.relations
+      .map((relation) => this.generateForeignKey(model, entityId, relation))
+      .filter(Boolean);
 
     return foreignKeys.length > 0 ? `${foreignKeys.join(",\n  ")}` : null;
   }
@@ -122,9 +122,10 @@ export class MySQLStrategy extends AbstractOutputStrategy {
       number: "INT",
       json: "JSON",
       date: "DATE",
+      datetime: "DATETIME",
       boolean: "TINYINT(1)",
       timestamp: "TIMESTAMP",
-      money: "DECIMAL(19,4)",
+      money: "DECIMAL(19,4)", // GAAP Compliant
     };
 
     const columnType = types[type];

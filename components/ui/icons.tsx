@@ -25,6 +25,7 @@ import {
   Settings,
   Share,
   SunMedium,
+  Table2,
   Trash,
   Twitter,
   User,
@@ -34,6 +35,7 @@ import {
 export type Icon = LucideIcon;
 
 export const Icons = {
+  table: Table2,
   copy: Copy,
   hamburger: MenuSquare,
   loading: Loader2,

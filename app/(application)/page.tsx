@@ -19,8 +19,9 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 import { useMemo } from "react";
-import { highlight } from "sql-highlight";
 
+// TODO: Check constraints
+// TODO: ON Delete behaviour for relations (cascade, restrict, etc)
 // TODO: form parsing, general tidying up
 // TODO: right now, the schema generation relies on primary keys existing, so we need to disallow deleting attributes on FROM models that contribute to a relationship
 // TODO: Relationship lines and crow's feet
@@ -34,17 +35,11 @@ export default function HomePage() {
   } = useUIStore();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- only generate schema when model changes, not on drag or any other such behaviour
-  const schema = useMemo(
-    () =>
-      highlight(generateSchema(), {
-        html: true,
-      }),
-    [model, generateSchema]
-  );
+  const schema = useMemo(() => generateSchema(), [model, generateSchema]);
 
   return (
     <main className="h-full">
-      <div className="absolute right-4 top-4 flex flex-col items-end gap-4">
+      <div className="absolute right-4 top-4 flex flex-col items-end gap-4 z-50">
         <ModeToggle />
         <div className="flex gap-4">
           <AddEntityOrRelation disabled={placementMode} />
@@ -54,10 +49,10 @@ export default function HomePage() {
               setTarget(value);
             }}
           >
-            <SelectTrigger className="w-[180px] z-10">
+            <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="z-10">
+            <SelectContent>
               <SelectGroup>
                 <SelectLabel>Select Target</SelectLabel>
                 <SelectItem value="postgres">PostgreSQL</SelectItem>

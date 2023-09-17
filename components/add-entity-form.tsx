@@ -24,7 +24,12 @@ export function AddEntityForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { addEntityToModel } = useAppStore();
-  const { setGhostPosition, setPlacementMode, addClientEntity } = useUIStore();
+  const {
+    setGhostPosition,
+    setPlacementMode,
+    addClientEntity,
+    ui: { isIntersecting },
+  } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
@@ -38,33 +43,45 @@ export function AddEntityForm({
     },
   });
 
-  const onSubmit: SubmitHandler<EntityType> = useCallback((values) => {
-    setOpen(false);
-    setPlacementMode(true);
+  const onSubmit: SubmitHandler<EntityType> = useCallback(
+    (values) => {
+      setOpen(false);
+      setPlacementMode(true);
 
-    const onMouseUp = () => {
-      const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
-      if (!latestGhostPosition) return;
+      const onMouseUp = () => {
+        const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
+        if (!latestGhostPosition || isIntersecting) return;
 
-      setGhostPosition(null);
-      setPlacementMode(false);
+        setGhostPosition(null);
+        setPlacementMode(false);
 
-      addClientEntity({
-        id: values.id,
-        x: latestGhostPosition.clientX ?? undefined,
-        y: latestGhostPosition.clientY ?? undefined,
-        fromAchor: null,
-        toAnchor: null,
-      });
-      addEntityToModel({
-        ...values,
-      });
+        if (!isIntersecting) {
+          addClientEntity({
+            id: values.id,
+            x: latestGhostPosition.clientX ?? undefined,
+            y: latestGhostPosition.clientY ?? undefined,
+            fromAnchor: null,
+            toAnchor: null,
+          });
+          addEntityToModel({
+            ...values,
+          });
+        }
 
-      document.removeEventListener("mouseup", onMouseUp);
-    };
+        document.removeEventListener("mouseup", onMouseUp);
+      };
 
-    document.addEventListener("mouseup", onMouseUp);
-  }, []);
+      document.addEventListener("mouseup", onMouseUp);
+    },
+    [
+      isIntersecting,
+      addEntityToModel,
+      setOpen,
+      setPlacementMode,
+      setGhostPosition,
+      addClientEntity,
+    ]
+  );
 
   return (
     <Form {...form}>

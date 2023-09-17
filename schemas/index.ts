@@ -14,17 +14,20 @@ export type AnchorType = z.infer<typeof Anchor>;
 export type EntityType = z.infer<typeof EntitySchema>;
 export const Identifier = z.string().uuid(); // if I decide to use a DB i'll let it generate the uuids
 
-const AttributeTypes = z.enum([
+export const attributes = [
   "identifier",
   "string",
   "number",
   "json",
   "date",
-  "boolean",
+  "datetime",
   "timestamp",
+  "boolean",
   "money",
   // "enum",
-] as const);
+] as const;
+
+const AttributeTypes = z.enum(attributes);
 
 // Enums:
 // MySQL 8,0 https://dev.mysql.com/doc/refman/8.0/en/enum.html
@@ -34,6 +37,20 @@ const AttributeTypes = z.enum([
 // CHECK CONSTRAINTS:
 // MySQL8: https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html // email: (`email` REGEXP "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$");
 // Postgres: https://www.postgresql.org/docs/9.1/ddl-constraints.html // email: CHECK (email ~* '^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$')
+const isValidDateTimeDefault = (defaultValue: string | Date) => {
+  return (
+    defaultValue instanceof Date ||
+    !Number.isNaN(Date.parse(defaultValue)) ||
+    defaultValue === "NOW()" ||
+    defaultValue === "CURRENT_DATE" ||
+    defaultValue === "CURRENT_TIME" ||
+    defaultValue === "CURRENT_TIMESTAMP" ||
+    defaultValue === "CURRENT_DATE()" || // MySQL specific
+    defaultValue === "CURRENT_TIME()" || // MySQL specific
+    defaultValue === "CURRENT_TIMESTAMP()" || // MySQL specific
+    defaultValue === "SYSDATE()" // MySQL specific
+  );
+};
 
 export const AttributeSchema = z
   .object({
@@ -51,37 +68,44 @@ export const AttributeSchema = z
       if (data.default === undefined) return true;
       if (data.nullable && data.primaryKey) return false;
       if (data.nullable) return true;
+
+      let coercedDefaultValue;
+
       switch (data.type) {
         case "identifier":
-          return typeof data.default === "number";
-        case "string":
-          return typeof data.default === "string";
         case "number":
-          return typeof data.default === "number";
+          coercedDefaultValue = Number(data.default);
+          break;
+        case "money":
+          coercedDefaultValue = Number(data.default.replace(/^\$/, ""));
+          break;
+        case "boolean":
+          coercedDefaultValue =
+            data.default === "true"
+              ? true
+              : data.default === "false"
+              ? false
+              : null;
+          break;
+        case "string":
+          coercedDefaultValue = String(data.default);
+          break;
         case "json":
           try {
-            JSON.parse(String(data.default));
-            return true;
+            coercedDefaultValue = JSON.parse(String(data.default));
           } catch {
             return false;
           }
+          break;
         case "date":
-          return (
-            data.default instanceof Date ||
-            !Number.isNaN(Date.parse(data.default))
-          );
-        case "boolean":
-          return typeof data.default === "boolean";
+        case "datetime":
         case "timestamp":
-          return (
-            data.default instanceof Date ||
-            !Number.isNaN(Date.parse(data.default))
-          );
-        case "money":
-          return typeof data.default === "number";
+          return isValidDateTimeDefault(data.default);
         default:
           return false;
       }
+
+      return coercedDefaultValue !== null && coercedDefaultValue !== undefined;
     },
     {
       message: "Invalid default value for the given attribute type",

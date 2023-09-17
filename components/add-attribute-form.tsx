@@ -1,7 +1,9 @@
 import useAppStore from "@/lib/store";
+import { useUIStore } from "@/lib/ui-store";
 import { AttributeType, EntityType } from "@/schemas";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { AttributeTypeSelect } from "./attribute";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import {
@@ -13,25 +15,18 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { TypographyMuted } from "./ui/typography";
 
 export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   const [primaryKey, setPrimaryKey] = useState<boolean>(false);
   const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
+  const { deleteClientEntity } = useUIStore();
 
   const form = useForm<AttributeType>({
     criteriaMode: "all",
     defaultValues: {
       name: "",
+      default: "",
       primaryKey: false,
       nullable: false,
       unique: false,
@@ -70,26 +65,10 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
             <FormItem>
               <FormLabel htmlFor="type">Type</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Select attribute type</SelectLabel>
-                      <SelectItem value="identifier">Identifier</SelectItem>
-                      <SelectItem value="string">String</SelectItem>
-                      <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="boolean">Boolean</SelectItem>
-                      <SelectItem value="date">Date</SelectItem>
-                      <SelectItem value="datetime">Datetime</SelectItem>
-                      <SelectItem value="json">JSON</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <AttributeTypeSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -189,6 +168,7 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
               if (
                 confirm("Are you sure? This could royally mess up your schema!")
               ) {
+                deleteClientEntity(entity.id);
                 deleteEntityFromModel(entity.id);
               }
             }}

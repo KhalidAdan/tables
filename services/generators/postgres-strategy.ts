@@ -23,6 +23,8 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     const uniqueColumns = this.generateUniqueColumns(uniqueAttributes);
     if (uniqueColumns) columnDefs.push(uniqueColumns);
 
+    console.log(columnDefs);
+
     return `CREATE TABLE ${this.toSnakeCase(
       entity.name
     )} (\n  ${columnDefs.join(",\n  ")}\n);`;
@@ -51,9 +53,9 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     model: ModelType,
     entityId: string
   ): string | null {
-    const foreignKeys = model.relations.map((relation) =>
-      this.generateForeignKey(model, entityId, relation)
-    );
+    const foreignKeys = model.relations
+      .map((relation) => this.generateForeignKey(model, entityId, relation))
+      .filter(Boolean);
 
     return foreignKeys.length > 0 ? `${foreignKeys.join(",\n  ")}` : null;
   }
@@ -74,7 +76,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     const generateRefString = (name: string, pkName: string) =>
       `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
         name
-      )}(${this.toSnakeCase(pkName)}) ON DELETE NOT NULL`;
+      )}(${this.toSnakeCase(pkName)}) ON DELETE NO ACTION`;
 
     if (relation.type === "one-to-one" || relation.type === "one-to-many") {
       if (relation.toEntity.id !== entityId) return;
@@ -112,13 +114,14 @@ export class PostgresStrategy extends AbstractOutputStrategy {
   private columnType(type: string): string {
     const types: { [key: string]: string } = {
       identifier: "SERIAL",
-      string: "text",
-      number: "integer",
-      json: "jsonb",
-      date: "date",
-      boolean: "boolean",
-      timestamp: "timestamp",
-      money: "money",
+      string: "TEXT",
+      number: "INT",
+      json: "JSONB",
+      date: "DATE",
+      datetime: "TIMESTAMP",
+      boolean: "BOOLEAN",
+      timestamp: "TIMESTAMPTZ",
+      money: "MONEY",
     };
 
     const columnType = types[type];

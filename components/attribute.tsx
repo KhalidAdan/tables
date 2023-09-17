@@ -1,14 +1,22 @@
 "use client";
 
+import {
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import useAppStore from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { AttributeType, EntityType } from "@/schemas";
+import { AttributeType, EntityType, attributes } from "@/schemas";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Icons } from "./ui/icons";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select } from "./ui/select";
 
 export const Attribute = ({
   attribute,
@@ -23,7 +31,9 @@ export const Attribute = ({
     deleteAttributeFromEntity,
     setAttributeUnique,
     setAttributeNullable,
+    editAttributeType,
   } = useAppStore();
+
   return (
     <div
       data-testid="attribute"
@@ -34,30 +44,32 @@ export const Attribute = ({
       )}
     >
       <div className="flex gap-4 col-span-3">
-        <div className="flex gap-4 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-          <Badge
-            variant="outline"
-            className={cn(
-              "cursor-pointer",
-              attribute.relationKey && "bg-green-600"
-            )}
-          >
-            {attribute.relationKey ? "relation" : attribute.type}
-          </Badge>
+        <div className="w-full flex gap-3 items-center">
+          {attribute.relationKey ? (
+            <AttributeTypeBadge isRelation name={attribute.name} />
+          ) : (
+            <AttributeTypeSelect
+              attribute={attribute}
+              value={attribute.type}
+              onChange={(value) =>
+                editAttributeType(entityId, attribute.id, value)
+              }
+            />
+          )}
           <Input
             defaultValue={attribute.name}
-            className="border-none ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0 py-0 h-6"
+            onChange={(event) => console.log(event)}
           />
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteAttributeFromEntity(entityId, attribute);
+            }}
+          >
+            <Icons.trash size="16" />
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteAttributeFromEntity(entityId, attribute);
-          }}
-        >
-          <Icons.trash size="16" />
-        </Button>
       </div>
       {!attribute.primaryKey && (
         <div className="flex items-center space-x-2">
@@ -85,5 +97,55 @@ export const Attribute = ({
         </div>
       )}
     </div>
+  );
+};
+
+const AttributeTypeBadge = ({
+  name,
+  isRelation,
+}: {
+  name: AttributeType["name"];
+  isRelation?: boolean;
+}) => (
+  <Badge
+    variant="outline"
+    className={cn("cursor-move", isRelation && "bg-green-600")}
+  >
+    {isRelation ? "relation" : name}
+  </Badge>
+);
+
+export const AttributeTypeSelect = ({
+  attribute,
+  value,
+  onChange,
+}: {
+  attribute?: AttributeType;
+  value: AttributeType["type"];
+  onChange: (value: AttributeType["type"]) => void;
+}) => {
+  const selectedAttribute = attribute
+    ? attributes.find((attr) => attr === attribute.type)
+    : undefined;
+
+  return (
+    <Select
+      defaultValue={selectedAttribute ?? undefined}
+      value={value}
+      onValueChange={onChange}
+    >
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          {attributes.map((key) => (
+            <SelectItem key={key} value={key} className="capitalize">
+              <span className="mr-2">{key}</span>
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 };

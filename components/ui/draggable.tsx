@@ -1,7 +1,7 @@
 "use client";
 
 import { useUIStore } from "@/lib/ui-store";
-import { ClientEntityType } from "@/schemas/ui";
+import { EntityType } from "@/schemas";
 import React, { MouseEventHandler } from "react";
 
 export default function Draggable({
@@ -9,10 +9,13 @@ export default function Draggable({
   entity,
 }: {
   children: React.ReactNode;
-  entity: ClientEntityType;
+  entity: EntityType;
 }) {
   const ref = React.useRef<HTMLDivElement | null>(null);
-  const { setEntityPosition } = useUIStore();
+  const {
+    setEntityPosition,
+    ui: { isIntersecting },
+  } = useUIStore();
   const nty = useUIStore
     .getState()
     .ui.clientEntities.find((e) => e.id === entity.id);
@@ -49,7 +52,7 @@ export default function Draggable({
         position: "absolute",
         left: `${nty?.x}px`,
         top: `${nty?.y}px`,
-        cursor: "grab",
+        cursor: "move",
       }}
     >
       {children}

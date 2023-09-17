@@ -3,6 +3,7 @@
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
 import { AddRelationFormProps, relations } from "@/schemas";
+import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import {
@@ -30,7 +31,12 @@ export function AddRelationForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { model, addRelationToModel } = useAppStore();
-  const { setGhostPosition, setPlacementMode, addClientEntity } = useUIStore();
+  const {
+    setGhostPosition,
+    setPlacementMode,
+    addClientEntity,
+    ui: { isIntersecting },
+  } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
     defaultValues: {
@@ -39,33 +45,45 @@ export function AddRelationForm({
     criteriaMode: "all",
   });
 
-  const onSubmit: SubmitHandler<AddRelationFormProps> = (values) => {
-    setOpen(false);
-    setPlacementMode(true);
+  const onSubmit: SubmitHandler<AddRelationFormProps> = useCallback(
+    (values) => {
+      setOpen(false);
 
-    const onMouseUp = () => {
-      const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
-      if (!latestGhostPosition) return;
+      const handleManyToMany = () => {
+        setPlacementMode(true);
 
-      setGhostPosition(null);
-      setPlacementMode(false);
+        const onMouseUp = () => {
+          const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
 
-      addRelationToModel({
-        ...values,
-      });
+          setGhostPosition(null);
+          setPlacementMode(false);
+          document.removeEventListener("mouseup", onMouseUp);
 
-      addClientEntity({
-        id: values.id,
-        x: latestGhostPosition.clientX ?? undefined,
-        y: latestGhostPosition.clientY ?? undefined,
-        fromAchor: null,
-        toAnchor: null,
-      });
+          if (!latestGhostPosition) return;
 
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-    document.addEventListener("mouseup", onMouseUp);
-  };
+          if (!isIntersecting) {
+            addRelationToModel(values);
+            addClientEntity({
+              id: values.id,
+              x: latestGhostPosition.clientX,
+              y: latestGhostPosition.clientY,
+              fromAnchor: null,
+              toAnchor: null,
+            });
+          }
+        };
+
+        document.addEventListener("mouseup", onMouseUp);
+      };
+
+      if (values.type === "many-to-many") {
+        handleManyToMany();
+      } else {
+        addRelationToModel(values);
+      }
+    },
+    []
+  );
 
   return (
     <Form {...form}>
@@ -155,11 +173,23 @@ export function AddRelationForm({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Select entity</SelectLabel>
-                      {model.entities.map((entity, i) => (
-                        <SelectItem key={i} value={entity.id}>
-                          {entity.name}
-                        </SelectItem>
-                      ))}
+                      {model.entities.map((entity, i) => {
+                        const hasId = entity.attributes.find(
+                          (attr) => attr.type === "identifier"
+                        );
+                        return (
+                          <SelectItem
+                            key={i}
+                            value={entity.id}
+                            disabled={!hasId}
+                          >
+                            {entity.name}{" "}
+                            {hasId
+                              ? ""
+                              : "(no identifier attribute to create a relation)"}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

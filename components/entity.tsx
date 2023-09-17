@@ -23,6 +23,7 @@ const Entity = ({ entity }: EntityProps) => {
   const hasAttributes = attributes.length > 0;
   const { setAnchor } = useUIStore();
 
+  // TODO: Support SVG relationship lines
   const myCallbackRef = useCallback(
     (node: HTMLDivElement) => {
       if (node !== null) {
@@ -36,21 +37,13 @@ const Entity = ({ entity }: EntityProps) => {
   );
 
   return (
-    <Draggable
-      entity={{
-        id: entity.id,
-        x: entity.x,
-        y: entity.y,
-        fromAchor: entity.fromAnchor,
-        toAnchor: entity.toAnchor,
-      }}
-    >
+    <Draggable entity={entity}>
       <div
         ref={myCallbackRef}
-        className="pt-6 px-6 pb-6 rounded-lg border w-96 text-left space-y-4 bg-background "
+        className="p-6 rounded-lg border w-[400px] text-left space-y-4 bg-background "
       >
-        <section className="-mx-6 -mt-6 border-b bg-accent rounded-t-lg pt-2 pl-6 pr-1 flex justify-between items-center">
-          <div>{entity.name}</div>
+        <section className="-mx-6 -mt-6 pr-4 border-b bg-accent rounded-t-[6px] flex justify-between items-center">
+          <div className="pl-4">{entity.name}</div>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm">
