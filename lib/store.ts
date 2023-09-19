@@ -446,7 +446,16 @@ function createOneToManyRelation(
       ...state.model,
       entities: state.model.entities.map((entity) => {
         if (entity.id === toEntity.id) {
-          entity.data.attributes.push(attribute);
+          const updatedAttributes = [...entity.data.attributes, attribute];
+          return {
+            ...entity,
+            type: "entity",
+            position: { x: 0, y: 0 }, // tODO: Fix this
+            data: {
+              ...entity.data,
+              attributes: updatedAttributes,
+            },
+          };
         }
         return entity;
       }),

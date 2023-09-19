@@ -81,7 +81,7 @@ export default function HomePage() {
           hideAttribution: true,
         }}
       >
-        <Background />
+        <Background gap={40} />
         <Controls />
       </ReactFlow>
       <GhostEntity />

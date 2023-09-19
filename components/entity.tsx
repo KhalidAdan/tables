@@ -1,7 +1,6 @@
 "use client";
 
 import { EntityType } from "@/schemas/tables-schema";
-import { Handle, Position } from "reactflow";
 import AddAttributeForm from "./add-attribute-form";
 import { Attribute } from "./attribute";
 import { Button } from "./ui/button";
@@ -58,8 +57,8 @@ const Entity = (props: EntityType) => {
           </TypographySmall>
         </div>
       )}
-      <Handle type="target" position={Position.Left} className="h-0" />
-      <Handle type="source" position={Position.Right} className="h-0" />
+      {/* <Handle type="target" position={Position.Left} className="h-0" />
+      <Handle type="source" position={Position.Right} className="h-0" /> */}
     </div>
   );
 };

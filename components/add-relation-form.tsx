@@ -48,23 +48,12 @@ export function AddRelationForm({
   const onSubmit: SubmitHandler<AddRelationFormProps> = useCallback(
     (values) => {
       setOpen(false);
-
-      const handleManyToMany = () => {
-        const onMouseUp = () => {
-          addRelationToModel(values);
-        };
-
-        document.addEventListener("mouseup", onMouseUp);
-      };
-
-      if (values.type === "many-to-many") {
-        handleManyToMany();
-      } else {
-        addRelationToModel(values);
-      }
+      addRelationToModel(values);
     },
     []
   );
+
+  console.log(form.formState.errors);
 
   return (
     <Form {...form}>
@@ -116,7 +105,7 @@ export function AddRelationForm({
                     <SelectGroup>
                       <SelectLabel>Select entity</SelectLabel>
                       {model.entities.map((entity, i) => {
-                        const hasId = entity.attributes.find(
+                        const hasId = entity.data.attributes.find(
                           (attr) => attr.type === "identifier"
                         );
                         return (
@@ -125,7 +114,7 @@ export function AddRelationForm({
                             value={entity.id}
                             disabled={!hasId}
                           >
-                            {entity.name}{" "}
+                            {entity.data.name}{" "}
                             {hasId
                               ? ""
                               : "(no identifier attribute to create a relation)"}
@@ -155,7 +144,7 @@ export function AddRelationForm({
                     <SelectGroup>
                       <SelectLabel>Select entity</SelectLabel>
                       {model.entities.map((entity, i) => {
-                        const hasId = entity.attributes.find(
+                        const hasId = entity.data.attributes.find(
                           (attr) => attr.type === "identifier"
                         );
                         return (
@@ -164,7 +153,7 @@ export function AddRelationForm({
                             value={entity.id}
                             disabled={!hasId}
                           >
-                            {entity.name}{" "}
+                            {entity.data.name}{" "}
                             {hasId
                               ? ""
                               : "(no identifier attribute to create a relation)"}
