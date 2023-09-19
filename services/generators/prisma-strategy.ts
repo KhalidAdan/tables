@@ -1,4 +1,4 @@
-import { ModelType } from "@/schemas";
+import { ModelType } from "@/schemas/tables-schema";
 import { AbstractOutputStrategy } from "./output-strategy";
 
 export default class PrismaStrategy extends AbstractOutputStrategy {

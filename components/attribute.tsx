@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import useAppStore from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { AttributeType, EntityType, attributes } from "@/schemas";
+import { AttributeType, EntityType, attributes } from "@/schemas/tables-schema";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";

@@ -2,6 +2,7 @@
 
 import AddEntityOrRelation from "@/components/add-entity-or-realtionship-dialogue";
 import Entity from "@/components/entity";
+import GhostEntity from "@/components/ghost-entity";
 import SchemaDefinitionSheet from "@/components/schema-definition-sheet";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -16,8 +17,8 @@ import {
 } from "@/components/ui/select";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import useAppStore from "@/lib/store";
+import { useMemo } from "react";
 
-import { useEffect, useMemo } from "react";
 import ReactFlow, { Background, Controls } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -32,12 +33,7 @@ import "reactflow/dist/style.css";
 const nodeTypes = { entity: Entity };
 
 export default function HomePage() {
-  const { model, nodes, onNodesChange, setTarget, generateSchema } =
-    useAppStore();
-
-  useEffect(() => {
-    console.log("Nodes changed:", nodes);
-  }, [nodes]);
+  const { model, onNodesChange, setTarget, generateSchema } = useAppStore();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- only generate schema when model changes, not on drag or any other such behaviour
   const schema = useMemo(() => generateSchema(), [model, generateSchema]);
@@ -77,7 +73,7 @@ export default function HomePage() {
         </div>
       </div>
       <ReactFlow
-        nodes={nodes}
+        nodes={model.entities}
         nodeTypes={nodeTypes as any}
         onNodesChange={onNodesChange}
         fitView
@@ -88,6 +84,7 @@ export default function HomePage() {
         <Background />
         <Controls />
       </ReactFlow>
+      <GhostEntity />
     </main>
   );
 }

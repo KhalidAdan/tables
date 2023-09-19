@@ -1,4 +1,9 @@
-import { AttributeType, EntityType, ModelType, RelationType } from "@/schemas";
+import {
+  AttributeType,
+  EntityType,
+  ModelType,
+  RelationType,
+} from "@/schemas/tables-schema";
 import { AbstractOutputStrategy } from "./output-strategy";
 
 export class PostgresStrategy extends AbstractOutputStrategy {
@@ -11,7 +16,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
 
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
     const uniqueAttributes: any[] = [];
-    const columnDefs = entity.attributes
+    const columnDefs = entity.data.attributes
       .filter((attr) => !attr.relationKey)
       .map((attr: AttributeType) =>
         this.generateColumnDef(attr, uniqueAttributes)
@@ -24,7 +29,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     if (uniqueColumns) columnDefs.push(uniqueColumns);
 
     return `CREATE TABLE ${this.toSnakeCase(
-      entity.name
+      entity.data.name
     )} (\n  ${columnDefs.join(",\n  ")}\n);`;
   }
 
@@ -68,7 +73,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
   findEntityAndPK = (model: ModelType, id: string) => {
     const entity = model.entities.find((e) => e.id === id);
     if (!entity) throw new Error(`Entity not found: ${id}`);
-    const pk = entity.attributes.find((attr) => attr.primaryKey);
+    const pk = entity.data.attributes.find((attr) => attr.primaryKey);
     if (!pk) throw new Error(`Primary key not found for entity: ${id}`);
     return { entity, pk };
   };
@@ -83,7 +88,7 @@ export class PostgresStrategy extends AbstractOutputStrategy {
       const { entity: fromEntity, pk: primaryKeyAttribute } =
         this.findEntityAndPK(model, relation.fromEntity.id);
       return this.generateRefString(
-        fromEntity.name,
+        fromEntity.data.name,
         primaryKeyAttribute.name,
         relation
       );
@@ -98,11 +103,11 @@ export class PostgresStrategy extends AbstractOutputStrategy {
         this.findEntityAndPK(model, relation.toEntity.id);
 
       return `${this.generateRefString(
-        fromEntity.name,
+        fromEntity.data.name,
         fromPrimaryKeyAttribute.name,
         relation
       )},\n  ${this.generateRefString(
-        toEntity.name,
+        toEntity.data.name,
         toPrimaryKeyAttribute.name,
         relation
       )}`;

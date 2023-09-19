@@ -5,7 +5,7 @@ import {
   AddRelationFormProps,
   AddRelationFormSchema,
   relations,
-} from "@/schemas";
+} from "@/schemas/tables-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";

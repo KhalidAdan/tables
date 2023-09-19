@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import useAppStore from "@/lib/store";
-import { EntitySchema, EntityType } from "@/schemas";
+import { EntitySchema, EntityType } from "@/schemas/tables-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -22,47 +22,43 @@ export function AddEntityForm({
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { addEntityToModel, addNode } = useAppStore();
+  const { addEntityToModel } = useAppStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
     criteriaMode: "all",
     defaultValues: {
       id: randomUuid,
-      name: "",
-      attributes: [],
+      data: {
+        name: "",
+        attributes: [],
+      },
+      type: "entity",
+      position: {
+        x: 0,
+        y: 0,
+      },
     },
   });
 
   const onSubmit: SubmitHandler<EntityType> = useCallback(
     (values) => {
+      console.log(values);
       setOpen(false);
       addEntityToModel({
         ...values,
       });
-      addNode({
-        id: values.id,
-        type: "entity",
-        position: {
-          x: 0,
-          y: 0,
-        },
-        data: {
-          id: values.id,
-          name: values.name,
-          attributes: [],
-        },
-      });
     },
-    [addEntityToModel, setOpen, addNode]
+    [addEntityToModel, setOpen]
   );
 
+  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="name"
+          name="data.name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Name</FormLabel>

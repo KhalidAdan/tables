@@ -1,14 +1,10 @@
 import { schemaStrategies } from "@/services/generators";
 import {
-  Connection,
   Edge,
   EdgeChange,
-  Node,
   NodeChange,
-  OnConnect,
   OnEdgesChange,
   OnNodesChange,
-  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
 } from "reactflow";
@@ -21,18 +17,15 @@ import {
   EntityType,
   ModelType,
   RelationType,
-} from "../schemas";
+} from "../schemas/tables-schema";
 
 export type State = {
   model: ModelType;
-  nodes: Node[];
   edges: Edge[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
-  onConnect: OnConnect;
-  setNodes: (nodes: Node[]) => void;
-  addNode: (node: Node) => void;
   setTarget: (target: ModelType["target"]) => void;
+  setPlacementMode: (isPlacementMode: boolean) => void;
   // entity actions
   addEntityToModel: (entity: EntityType) => EntityType;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
@@ -78,52 +71,58 @@ export const getEntityById = (state: State, entityId: EntityType["id"]) => {
   return entity;
 };
 
-export const getEntityByAttributeId = (
-  state: State,
-  attributeId: AttributeType["id"]
-) => {
-  const entity = state.model.entities.find((entity) =>
-    entity.attributes.find((attribute) => attribute.id === attributeId)
-  );
-  return entity;
-};
-
 const useAppStore = create<State>((set, get) => ({
-  nodes: [],
   edges: [],
-  onNodesChange: (changes: NodeChange[]) => {
-    set({
-      nodes: applyNodeChanges(changes, get().nodes),
-    });
-  },
-  onEdgesChange: (changes: EdgeChange[]) => {
-    set({
-      edges: applyEdgeChanges(changes, get().edges),
-    });
-  },
-  onConnect: (connection: Connection) => {
-    set({
-      edges: addEdge(connection, get().edges),
-    });
-  },
-  setNodes: (nodes: Node[]) => {
-    set({
-      nodes,
-    });
-  },
-  addNode: (node: Node) => {
-    console.log(node);
-    set({
-      nodes: [...get().nodes, node],
-    });
-  },
-
   model: {
     name: "Tables App",
     entities: [],
     relations: [],
     target: "postgres",
+    isPlacementMode: false,
   },
+
+  // ui concerns
+  onNodesChange: (changes: NodeChange[]) => {
+    const updatedEntities = applyNodeChanges(changes, get().model.entities);
+
+    set((state) => {
+      const changes = {
+        model: {
+          ...state.model,
+          entities: updatedEntities,
+        },
+      };
+
+      return changes as State;
+    });
+  },
+  onEdgesChange: (changes: EdgeChange[]) => {
+    const updatedEdges = applyEdgeChanges(changes, get().edges);
+
+    set((state) => ({
+      model: {
+        ...state.model,
+        edges: updatedEdges,
+      },
+    }));
+  },
+
+  setTarget: (target) =>
+    set((state) => ({
+      model: {
+        ...state.model,
+        target,
+      },
+    })),
+  setPlacementMode: (isPlacementMode) =>
+    set((state) => ({
+      model: {
+        ...state.model,
+        isPlacementMode,
+      },
+    })),
+
+  // data concerns
   addEntityToModel: (entity) => {
     return createEntity(entity, set);
   },
@@ -139,12 +138,14 @@ const useAppStore = create<State>((set, get) => ({
 
   addAttributeToEntity: (entityId, attribute) => {
     // parse attribute
-    console.log("Before update", get().model.entities);
+    console.log("Before update", entityId);
     try {
       AttributeSchema.parse(attribute);
     } catch (error) {
       console.error("An error occured while adding the attribute", error);
     }
+
+    console.log("model", get().model);
 
     // add attribute to entity
     const entity = get().model.entities.find((e) => e.id === entityId);
@@ -156,32 +157,20 @@ const useAppStore = create<State>((set, get) => ({
       if (e.id === entityId) {
         return {
           ...e,
-          attributes: [...e.attributes, attribute],
+          data: {
+            ...e.data,
+            attributes: [...e.data.attributes, attribute],
+          },
         };
       }
       return e;
     });
-    const updatedNodes = get().nodes.map((node) => {
-      if (node.id === entityId) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            attributes: [...node.data.attributes, attribute],
-          },
-        };
-      }
-      return node;
-    });
-    console.log("Updated entities", updatedEntities);
-    console.log("Updated nodes", updatedNodes);
 
     set((state) => ({
       model: {
         ...state.model,
         entities: updatedEntities,
       },
-      nodes: updatedNodes,
     }));
   },
   deleteAttributeFromEntity: (entityId, attribute) => {
@@ -203,7 +192,7 @@ const useAppStore = create<State>((set, get) => ({
             ...state.model,
             entities: state.model.entities.map((entity) => {
               if (entity.id === relation.throughEntity?.id) {
-                const newAttributes = entity.attributes.map((attr) => {
+                const newAttributes = entity.data.attributes.map((attr) => {
                   if (attr.relationKey === attribute.relationKey) {
                     return {
                       ...attr,
@@ -239,12 +228,16 @@ const useAppStore = create<State>((set, get) => ({
         ...state.model,
         entities: state.model.entities.map((entity) => {
           if (entity.id === entityId) {
-            const newAttributes = entity.attributes.filter((attr) => {
+            const newAttributes = entity.data.attributes.filter((attr) => {
               return attr.id !== attribute.id;
             });
+            console.log(newAttributes);
             return {
               ...entity,
-              attributes: newAttributes,
+              data: {
+                ...entity.data,
+                attributes: newAttributes,
+              },
             };
           }
           return entity;
@@ -260,12 +253,15 @@ const useAppStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              attributes: entity.attributes.map((attribute) => {
-                if (attribute.id === attributeId) {
-                  return { ...attribute, type: type };
-                }
-                return attribute;
-              }),
+              data: {
+                ...entity.data,
+                attributes: entity.data.attributes.map((attribute) => {
+                  if (attribute.id === attributeId) {
+                    return { ...attribute, type: type };
+                  }
+                  return attribute;
+                }),
+              },
             };
           }
           return entity;
@@ -273,6 +269,7 @@ const useAppStore = create<State>((set, get) => ({
       },
     }));
   },
+
   setAttributeDefault: (entityId, attributeId, defaultVal) => {
     set((state) => ({
       model: {
@@ -281,12 +278,15 @@ const useAppStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              attributes: entity.attributes.map((attribute) => {
-                if (attribute.id === attributeId) {
-                  return { ...attribute, default: defaultVal };
-                }
-                return attribute;
-              }),
+              data: {
+                ...entity.data,
+                attributes: entity.data.attributes.map((attribute) => {
+                  if (attribute.id === attributeId) {
+                    return { ...attribute, default: defaultVal };
+                  }
+                  return attribute;
+                }),
+              },
             };
           }
           return entity;
@@ -294,6 +294,7 @@ const useAppStore = create<State>((set, get) => ({
       },
     }));
   },
+
   setAttributeNullable: (entityId, attributeId, nullable) => {
     set((state) => ({
       model: {
@@ -302,12 +303,15 @@ const useAppStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              attributes: entity.attributes.map((attribute) => {
-                if (attribute.id === attributeId) {
-                  return { ...attribute, nullable: nullable };
-                }
-                return attribute;
-              }),
+              data: {
+                ...entity.data,
+                attributes: entity.data.attributes.map((attribute) => {
+                  if (attribute.id === attributeId) {
+                    return { ...attribute, nullable: nullable };
+                  }
+                  return attribute;
+                }),
+              },
             };
           }
           return entity;
@@ -315,6 +319,7 @@ const useAppStore = create<State>((set, get) => ({
       },
     }));
   },
+
   setAttributeUnique: (entityId, attributeId, unique) => {
     set((state) => ({
       model: {
@@ -323,12 +328,15 @@ const useAppStore = create<State>((set, get) => ({
           if (entity.id === entityId) {
             return {
               ...entity,
-              attributes: entity.attributes.map((attribute) => {
-                if (attribute.id === attributeId) {
-                  return { ...attribute, unique: unique };
-                }
-                return attribute;
-              }),
+              data: {
+                ...entity.data,
+                attributes: entity.data.attributes.map((attribute) => {
+                  if (attribute.id === attributeId) {
+                    return { ...attribute, unique: unique };
+                  }
+                  return attribute;
+                }),
+              },
             };
           }
           return entity;
@@ -362,13 +370,6 @@ const useAppStore = create<State>((set, get) => ({
         ),
       },
     })),
-  setTarget: (target) =>
-    set((state) => ({
-      model: {
-        ...state.model,
-        target,
-      },
-    })),
 
   generateSchema: () => {
     const model = get().model;
@@ -393,8 +394,10 @@ function createEntity(
     replace?: boolean | undefined
   ) => void
 ) {
+  console.log("Before update");
   try {
     const newEntity = EntitySchema.parse(entity);
+    console.log("New entity", newEntity);
     set((state) => ({
       model: {
         ...state.model,
@@ -431,7 +434,7 @@ function createOneToManyRelation(
   // create attribute on toEntity
   const attribute: AttributeType = {
     id: crypto.randomUUID(),
-    name: `${fromEntity.name.toLowerCase()}Id`,
+    name: `${fromEntity.data.name.toLowerCase()}Id`,
     type: "identifier",
     primaryKey: false,
     nullable: false,
@@ -443,7 +446,7 @@ function createOneToManyRelation(
       ...state.model,
       entities: state.model.entities.map((entity) => {
         if (entity.id === toEntity.id) {
-          entity.attributes.push(attribute);
+          entity.data.attributes.push(attribute);
         }
         return entity;
       }),
@@ -491,27 +494,31 @@ function createManyToManyRelation(
 
   const throughEntity: EntityType = {
     id: createRelationValues.id,
-    name: `${fromEntity.name}_${toEntity.name}`,
-    attributes: [
-      {
-        id: crypto.randomUUID(),
-        name: `${fromEntity.name.toLowerCase()}Id`,
-        type: "identifier",
-        primaryKey: false,
-        nullable: false,
-        unique: false,
-        relationKey: createRelationValues.id,
-      },
-      {
-        id: crypto.randomUUID(),
-        name: `${toEntity.name.toLowerCase()}Id`,
-        type: "identifier",
-        primaryKey: false,
-        nullable: false,
-        unique: false,
-        relationKey: createRelationValues.id,
-      },
-    ],
+    data: {
+      name: `${fromEntity.data.name}_${toEntity.data.name}`,
+      attributes: [
+        {
+          id: crypto.randomUUID(),
+          name: `${fromEntity.data.name.toLowerCase()}Id`,
+          type: "identifier",
+          primaryKey: false,
+          nullable: false,
+          unique: false,
+          relationKey: createRelationValues.id,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: `${toEntity.data.name.toLowerCase()}Id`,
+          type: "identifier",
+          primaryKey: false,
+          nullable: false,
+          unique: false,
+          relationKey: createRelationValues.id,
+        },
+      ],
+    },
+    position: { x: 0, y: 0 },
+    type: "entity",
   };
 
   set((state) => ({
@@ -534,8 +541,8 @@ function createManyToManyRelation(
   }));
 }
 
-useAppStore.subscribe((state) => {
-  console.log("New state", state);
-});
+// useAppStore.subscribe((state) => {
+//   console.log("New state", state);
+// });
 
 export default useAppStore;

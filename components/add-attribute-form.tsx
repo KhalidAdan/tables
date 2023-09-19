@@ -1,5 +1,5 @@
 import useAppStore from "@/lib/store";
-import { AttributeType, EntityType } from "@/schemas";
+import { AttributeType, EntityType } from "@/schemas/tables-schema";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { AttributeTypeSelect } from "./attribute";
@@ -16,7 +16,11 @@ import {
 import { Input } from "./ui/input";
 import { TypographyMuted } from "./ui/typography";
 
-export default function AddAttributeForm({ entity }: { entity: EntityType }) {
+export default function AddAttributeForm({
+  entity,
+}: {
+  entity: Pick<EntityType, "data"> & { id: EntityType["id"] };
+}) {
   const [primaryKey, setPrimaryKey] = useState<boolean>(false);
   const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
 
@@ -32,6 +36,7 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   });
   const onSubmit: SubmitHandler<AttributeType> = (values: AttributeType) => {
     const randomUuid = crypto.randomUUID();
+    console.log("add attribute form", values);
     addAttributeToEntity(entity.id, {
       ...values,
       id: randomUuid,

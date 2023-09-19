@@ -1,6 +1,6 @@
 "use client";
 
-import { EntityType } from "@/schemas";
+import { EntityType } from "@/schemas/tables-schema";
 import { Handle, Position } from "reactflow";
 import AddAttributeForm from "./add-attribute-form";
 import { Attribute } from "./attribute";
@@ -14,9 +14,8 @@ import {
 } from "./ui/dialog";
 import { TypographySmall } from "./ui/typography";
 
-const Entity = (props: { data: EntityType; id: EntityType["id"] }) => {
-  const { data: entity } = props;
-
+const Entity = (props: EntityType) => {
+  const entity = props.data;
   const attributes = entity.attributes;
   const hasAttributes = attributes.length > 0;
 
@@ -34,7 +33,12 @@ const Entity = (props: { data: EntityType; id: EntityType["id"] }) => {
             <DialogHeader>
               <DialogTitle>Add Attribute</DialogTitle>
             </DialogHeader>
-            <AddAttributeForm entity={entity} />
+            <AddAttributeForm
+              entity={{
+                id: props.id,
+                data: props.data,
+              }}
+            />
           </DialogContent>
         </Dialog>
       </section>
@@ -43,7 +47,7 @@ const Entity = (props: { data: EntityType; id: EntityType["id"] }) => {
           <Attribute
             key={i}
             attribute={attribute}
-            entityId={entity.id}
+            entityId={props.id}
             isLastAttribute={i < attributes.length - 1}
           />
         ))
@@ -54,8 +58,8 @@ const Entity = (props: { data: EntityType; id: EntityType["id"] }) => {
           </TypographySmall>
         </div>
       )}
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      <Handle type="target" position={Position.Left} className="h-0" />
+      <Handle type="source" position={Position.Right} className="h-0" />
     </div>
   );
 };

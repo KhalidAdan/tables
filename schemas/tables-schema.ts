@@ -113,8 +113,15 @@ export const AttributeSchema = z
 
 export const EntitySchema = z.object({
   id: Identifier,
-  name: z.string(),
-  attributes: z.array(AttributeSchema),
+  type: z.literal("entity"),
+  position: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
+  data: z.object({
+    name: z.string(),
+    attributes: z.array(AttributeSchema),
+  }),
 });
 
 export const relations = [
@@ -175,6 +182,7 @@ export const ModelSchema = z.object({
   entities: z.array(EntitySchema),
   relations: z.array(RelationSchema),
   target: TargetTypes,
+  isPlacementMode: z.boolean().default(false),
 });
 
 /**
