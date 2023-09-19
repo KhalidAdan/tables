@@ -2,7 +2,12 @@
 
 import useAppStore from "@/lib/store";
 import { useUIStore } from "@/lib/ui-store";
-import { AddRelationFormProps, relations } from "@/schemas";
+import {
+  AddRelationFormProps,
+  AddRelationFormSchema,
+  relations,
+} from "@/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
@@ -39,6 +44,7 @@ export function AddRelationForm({
   } = useUIStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
+    resolver: zodResolver(AddRelationFormSchema),
     defaultValues: {
       id: randomUuid,
     },

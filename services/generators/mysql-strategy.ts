@@ -66,14 +66,18 @@ export class MySQLStrategy extends AbstractOutputStrategy {
     return { entity, pk };
   }
 
-  private generateRefString(name: string, pkName: string) {
+  private generateRefString(
+    name: string,
+    pkName: string,
+    relation: RelationType
+  ) {
     return `${this.toSnakeCase(
       name
     )}_id INT,\n  FOREIGN KEY (${this.toSnakeCase(
       name
     )}_id) REFERENCES ${this.toSnakeCase(name)}(${this.toSnakeCase(
       pkName
-    )}) ON DELETE RESTRICT`;
+    )}) ON DELETE ${relation.onDelete} ON UPDATE ${relation.onUpdate}`;
   }
 
   private generateForeignKey(
@@ -85,7 +89,11 @@ export class MySQLStrategy extends AbstractOutputStrategy {
       if (relation.toEntity.id !== entityId) return;
       const { entity: fromEntity, pk: primaryKeyAttribute } =
         this.findEntityAndPK(relation.fromEntity.id, model);
-      return this.generateRefString(fromEntity.name, primaryKeyAttribute.name);
+      return this.generateRefString(
+        fromEntity.name,
+        primaryKeyAttribute.name,
+        relation
+      );
     } else if (relation.type === "many-to-many") {
       if (!relation.throughEntity)
         throw new Error("Missing through entity on a many-to-many relation");
@@ -98,10 +106,12 @@ export class MySQLStrategy extends AbstractOutputStrategy {
 
       return `${this.generateRefString(
         fromEntity.name,
-        fromPrimaryKeyAttribute.name
+        fromPrimaryKeyAttribute.name,
+        relation
       )},\n  ${this.generateRefString(
         toEntity.name,
-        toPrimaryKeyAttribute.name
+        toPrimaryKeyAttribute.name,
+        relation
       )}`;
     }
 

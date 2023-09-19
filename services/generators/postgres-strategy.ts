@@ -23,8 +23,6 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     const uniqueColumns = this.generateUniqueColumns(uniqueAttributes);
     if (uniqueColumns) columnDefs.push(uniqueColumns);
 
-    console.log(columnDefs);
-
     return `CREATE TABLE ${this.toSnakeCase(
       entity.name
     )} (\n  ${columnDefs.join(",\n  ")}\n);`;
@@ -60,45 +58,54 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     return foreignKeys.length > 0 ? `${foreignKeys.join(",\n  ")}` : null;
   }
 
+  generateRefString = (name: string, pkName: string, relation: RelationType) =>
+    `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
+      name
+    )}(${this.toSnakeCase(pkName)}) ON DELETE ${relation.onDelete} ON UPDATE ${
+      relation.onUpdate
+    }`;
+
+  findEntityAndPK = (model: ModelType, id: string) => {
+    const entity = model.entities.find((e) => e.id === id);
+    if (!entity) throw new Error(`Entity not found: ${id}`);
+    const pk = entity.attributes.find((attr) => attr.primaryKey);
+    if (!pk) throw new Error(`Primary key not found for entity: ${id}`);
+    return { entity, pk };
+  };
+
   private generateForeignKey(
     model: ModelType,
     entityId: string,
     relation: RelationType
   ): string | undefined {
-    const findEntityAndPK = (id: string) => {
-      const entity = model.entities.find((e) => e.id === id);
-      if (!entity) throw new Error(`Entity not found: ${id}`);
-      const pk = entity.attributes.find((attr) => attr.primaryKey);
-      if (!pk) throw new Error(`Primary key not found for entity: ${id}`);
-      return { entity, pk };
-    };
-
-    const generateRefString = (name: string, pkName: string) =>
-      `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
-        name
-      )}(${this.toSnakeCase(pkName)}) ON DELETE NO ACTION`;
-
     if (relation.type === "one-to-one" || relation.type === "one-to-many") {
       if (relation.toEntity.id !== entityId) return;
-      const { entity: fromEntity, pk: primaryKeyAttribute } = findEntityAndPK(
-        relation.fromEntity.id
+      const { entity: fromEntity, pk: primaryKeyAttribute } =
+        this.findEntityAndPK(model, relation.fromEntity.id);
+      return this.generateRefString(
+        fromEntity.name,
+        primaryKeyAttribute.name,
+        relation
       );
-      return generateRefString(fromEntity.name, primaryKeyAttribute.name);
     } else if (relation.type === "many-to-many") {
       if (!relation.throughEntity)
         throw new Error("Missing through entity on a many-to-many relation");
       if (relation.throughEntity.id !== entityId) return;
 
       const { entity: fromEntity, pk: fromPrimaryKeyAttribute } =
-        findEntityAndPK(relation.fromEntity.id);
-      const { entity: toEntity, pk: toPrimaryKeyAttribute } = findEntityAndPK(
-        relation.toEntity.id
-      );
+        this.findEntityAndPK(model, relation.fromEntity.id);
+      const { entity: toEntity, pk: toPrimaryKeyAttribute } =
+        this.findEntityAndPK(model, relation.toEntity.id);
 
-      return `${generateRefString(
+      return `${this.generateRefString(
         fromEntity.name,
-        fromPrimaryKeyAttribute.name
-      )},\n  ${generateRefString(toEntity.name, toPrimaryKeyAttribute.name)}`;
+        fromPrimaryKeyAttribute.name,
+        relation
+      )},\n  ${this.generateRefString(
+        toEntity.name,
+        toPrimaryKeyAttribute.name,
+        relation
+      )}`;
     }
 
     throw new Error(`Unsupported relation type: ${relation.type}`);

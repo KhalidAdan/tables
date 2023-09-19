@@ -144,12 +144,15 @@ export const relations = [
 
 export type RelationKeyType = (typeof relations)[number]["key"];
 
-export type AddRelationFormProps = {
-  id: string;
-  fromEntityId: string;
-  toEntityId: string;
-  type: RelationKeyType;
-};
+export type AddRelationFormProps = z.infer<typeof AddRelationFormSchema>;
+
+const onUpdateOrDeleteActions = [
+  "CASCADE",
+  "NO ACTION",
+  "RESTRICT",
+  "SET NULL",
+  "SET DEFAULT",
+] as const;
 
 export const RelationSchema = z.object({
   id: Identifier,
@@ -159,9 +162,21 @@ export const RelationSchema = z.object({
   type: z.enum(["one-to-one", "one-to-many", "many-to-many"] as const),
   x: z.number().nullish(),
   y: z.number().nullish(),
+  onDelete: z.enum(onUpdateOrDeleteActions).default("CASCADE"),
+  onUpdate: z.enum(onUpdateOrDeleteActions).default("CASCADE"),
 });
 
 const targets = ["postgres", "mysql", "prisma"] as const;
+
+export const AddRelationFormSchema = RelationSchema.pick({
+  id: true,
+  type: true,
+  onDelete: true,
+  onUpdate: true,
+}).extend({
+  fromEntityId: Identifier,
+  toEntityId: Identifier,
+});
 
 const TargetTypes = z.enum(targets);
 
