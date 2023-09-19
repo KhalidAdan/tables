@@ -8,7 +8,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import useAppStore from "@/lib/store";
-import { useUIStore } from "@/lib/ui-store";
 import { useState } from "react";
 import { highlight } from "sql-highlight";
 import { Button } from "./ui/button";
@@ -24,8 +23,8 @@ export default function SchemaDefinitionSheet({
   schema: string;
 }) {
   const [icon, setIcon] = useState<React.ReactNode>(<Icons.copy />);
-  const { addEntityToModel } = useAppStore();
-  const { addClientEntity } = useUIStore();
+  const { model, addEntityToModel } = useAppStore();
+
   return (
     <Sheet>
       <SheetTrigger asChild>{sheetTrigger}</SheetTrigger>
@@ -41,8 +40,6 @@ export default function SchemaDefinitionSheet({
               addEntityToModel({
                 id: id1,
                 name: "Student",
-                fromAnchor: null,
-                toAnchor: null,
                 attributes: [
                   {
                     id: crypto.randomUUID(),
@@ -88,18 +85,9 @@ export default function SchemaDefinitionSheet({
                   },
                 ],
               });
-              addClientEntity({
-                id: id1,
-                x: 100,
-                y: 100,
-                fromAnchor: null,
-                toAnchor: null,
-              });
               addEntityToModel({
                 id: id2,
                 name: "Class",
-                fromAnchor: null,
-                toAnchor: null,
                 attributes: [
                   {
                     id: crypto.randomUUID(),
@@ -144,13 +132,6 @@ export default function SchemaDefinitionSheet({
                     default: "NOW()",
                   },
                 ],
-              });
-              addClientEntity({
-                id: id2,
-                x: 600,
-                y: 100,
-                fromAnchor: null,
-                toAnchor: null,
               });
             }}
           >

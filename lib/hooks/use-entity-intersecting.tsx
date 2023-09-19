@@ -11,8 +11,6 @@ export function useIsEntityIntersecting(
     id: string;
     x: number;
     y: number;
-    fromAnchor: { x: number; y: number } | null;
-    toAnchor: { x: number; y: number } | null;
   }[],
   setIntersecting: (isIntersecting: boolean) => void
 ) {

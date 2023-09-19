@@ -10,7 +10,6 @@ export type IdentifierType = string;
 export type AttributeType = z.infer<typeof AttributeSchema>;
 export type RelationType = z.infer<typeof RelationSchema>;
 export type ModelType = z.infer<typeof ModelSchema>;
-export type AnchorType = z.infer<typeof Anchor>;
 export type EntityType = z.infer<typeof EntitySchema>;
 export const Identifier = z.string().uuid(); // if I decide to use a DB i'll let it generate the uuids
 
@@ -112,18 +111,9 @@ export const AttributeSchema = z
     }
   );
 
-const Anchor = z
-  .object({
-    x: z.number(),
-    y: z.number(),
-  })
-  .nullable();
-
 export const EntitySchema = z.object({
   id: Identifier,
   name: z.string(),
-  fromAnchor: Anchor,
-  toAnchor: Anchor,
   attributes: z.array(AttributeSchema),
 });
 

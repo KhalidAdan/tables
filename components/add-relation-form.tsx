@@ -1,7 +1,6 @@
 "use client";
 
 import useAppStore from "@/lib/store";
-import { useUIStore } from "@/lib/ui-store";
 import {
   AddRelationFormProps,
   AddRelationFormSchema,
@@ -36,12 +35,7 @@ export function AddRelationForm({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { model, addRelationToModel } = useAppStore();
-  const {
-    setGhostPosition,
-    setPlacementMode,
-    addClientEntity,
-    ui: { isIntersecting },
-  } = useUIStore();
+
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
     resolver: zodResolver(AddRelationFormSchema),
@@ -56,27 +50,8 @@ export function AddRelationForm({
       setOpen(false);
 
       const handleManyToMany = () => {
-        setPlacementMode(true);
-
         const onMouseUp = () => {
-          const latestGhostPosition = useUIStore.getState().ui.ghostPosition;
-
-          setGhostPosition(null);
-          setPlacementMode(false);
-          document.removeEventListener("mouseup", onMouseUp);
-
-          if (!latestGhostPosition) return;
-
-          if (!isIntersecting) {
-            addRelationToModel(values);
-            addClientEntity({
-              id: values.id,
-              x: latestGhostPosition.clientX,
-              y: latestGhostPosition.clientY,
-              fromAnchor: null,
-              toAnchor: null,
-            });
-          }
+          addRelationToModel(values);
         };
 
         document.addEventListener("mouseup", onMouseUp);

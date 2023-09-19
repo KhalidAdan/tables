@@ -1,4 +1,17 @@
 import { schemaStrategies } from "@/services/generators";
+import {
+  Connection,
+  Edge,
+  EdgeChange,
+  Node,
+  NodeChange,
+  OnConnect,
+  OnEdgesChange,
+  OnNodesChange,
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
+} from "reactflow";
 import { create } from "zustand";
 import {
   AddRelationFormProps,
@@ -12,6 +25,13 @@ import {
 
 export type State = {
   model: ModelType;
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect;
+  setNodes: (nodes: Node[]) => void;
+  addNode: (node: Node) => void;
   setTarget: (target: ModelType["target"]) => void;
   // entity actions
   addEntityToModel: (entity: EntityType) => EntityType;
@@ -69,6 +89,35 @@ export const getEntityByAttributeId = (
 };
 
 const useAppStore = create<State>((set, get) => ({
+  nodes: [],
+  edges: [],
+  onNodesChange: (changes: NodeChange[]) => {
+    set({
+      nodes: applyNodeChanges(changes, get().nodes),
+    });
+  },
+  onEdgesChange: (changes: EdgeChange[]) => {
+    set({
+      edges: applyEdgeChanges(changes, get().edges),
+    });
+  },
+  onConnect: (connection: Connection) => {
+    set({
+      edges: addEdge(connection, get().edges),
+    });
+  },
+  setNodes: (nodes: Node[]) => {
+    set({
+      nodes,
+    });
+  },
+  addNode: (node: Node) => {
+    console.log(node);
+    set({
+      nodes: [...get().nodes, node],
+    });
+  },
+
   model: {
     name: "Tables App",
     entities: [],
@@ -90,28 +139,50 @@ const useAppStore = create<State>((set, get) => ({
 
   addAttributeToEntity: (entityId, attribute) => {
     // parse attribute
-    set((state) => {
-      try {
-        AttributeSchema.parse(attribute);
-      } catch (error) {
-        console.error("An error occured while adding the attribute", error);
-      }
+    console.log("Before update", get().model.entities);
+    try {
+      AttributeSchema.parse(attribute);
+    } catch (error) {
+      console.error("An error occured while adding the attribute", error);
+    }
 
-      const entity = state.model.entities.find((nty) => entityId === nty.id);
-      if (!entity) {
-        throw new Error(`Entity not found by id: ${entityId}`);
-      }
+    // add attribute to entity
+    const entity = get().model.entities.find((e) => e.id === entityId);
+    if (!entity) {
+      throw new Error(`Entity not found by id: ${entityId}`);
+    }
 
-      entity.attributes.push(attribute);
-      return {
-        model: {
-          ...state.model,
-          entities: state.model.entities.map((nty) =>
-            nty.id === entityId ? entity : nty
-          ),
-        },
-      };
+    const updatedEntities = get().model.entities.map((e) => {
+      if (e.id === entityId) {
+        return {
+          ...e,
+          attributes: [...e.attributes, attribute],
+        };
+      }
+      return e;
     });
+    const updatedNodes = get().nodes.map((node) => {
+      if (node.id === entityId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            attributes: [...node.data.attributes, attribute],
+          },
+        };
+      }
+      return node;
+    });
+    console.log("Updated entities", updatedEntities);
+    console.log("Updated nodes", updatedNodes);
+
+    set((state) => ({
+      model: {
+        ...state.model,
+        entities: updatedEntities,
+      },
+      nodes: updatedNodes,
+    }));
   },
   deleteAttributeFromEntity: (entityId, attribute) => {
     //if attr.relationKey is not undefined
@@ -421,8 +492,6 @@ function createManyToManyRelation(
   const throughEntity: EntityType = {
     id: createRelationValues.id,
     name: `${fromEntity.name}_${toEntity.name}`,
-    fromAnchor: null,
-    toAnchor: null,
     attributes: [
       {
         id: crypto.randomUUID(),
@@ -464,5 +533,9 @@ function createManyToManyRelation(
     },
   }));
 }
+
+useAppStore.subscribe((state) => {
+  console.log("New state", state);
+});
 
 export default useAppStore;

@@ -1,5 +1,4 @@
 import useAppStore from "@/lib/store";
-import { useUIStore } from "@/lib/ui-store";
 import { AttributeType, EntityType } from "@/schemas";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -20,7 +19,6 @@ import { TypographyMuted } from "./ui/typography";
 export default function AddAttributeForm({ entity }: { entity: EntityType }) {
   const [primaryKey, setPrimaryKey] = useState<boolean>(false);
   const { addAttributeToEntity, deleteEntityFromModel } = useAppStore();
-  const { deleteClientEntity } = useUIStore();
 
   const form = useForm<AttributeType>({
     criteriaMode: "all",
@@ -168,7 +166,6 @@ export default function AddAttributeForm({ entity }: { entity: EntityType }) {
               if (
                 confirm("Are you sure? This could royally mess up your schema!")
               ) {
-                deleteClientEntity(entity.id);
                 deleteEntityFromModel(entity.id);
               }
             }}

@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" suppressHydrationWarning>
       <head />
-      <body className="w-full h-full bg-graph-image dark:bg-graph-image-dark bg-graph-size bg-graph-position">
+      <body className="w-full h-full ">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
