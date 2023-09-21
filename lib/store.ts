@@ -25,7 +25,8 @@ export type State = {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   setTarget: (target: ModelType["target"]) => void;
-  setPlacementMode: (isPlacementMode: boolean) => void;
+  setPlacementMode: (placementMode: ModelType["placementMode"]) => void;
+  setGhostPosition: (position: ModelType["ghostPosition"]) => void;
   // entity actions
   addEntityToModel: (entity: EntityType) => EntityType;
   deleteEntityFromModel: (entityId: EntityType["id"]) => void;
@@ -71,6 +72,16 @@ export const getEntityById = (state: State, entityId: EntityType["id"]) => {
   return entity;
 };
 
+export const getRelationById = (
+  state: State,
+  relationId: RelationType["id"]
+) => {
+  const relation = state.model.relations.find(
+    (relation) => relation.id === relationId
+  );
+  return relation;
+};
+
 const useAppStore = create<State>((set, get) => ({
   edges: [],
   model: {
@@ -78,7 +89,8 @@ const useAppStore = create<State>((set, get) => ({
     entities: [],
     relations: [],
     target: "postgres",
-    isPlacementMode: false,
+    placementMode: false,
+    ghostPosition: { x: 0, y: 0 },
   },
 
   // ui concerns
@@ -114,16 +126,25 @@ const useAppStore = create<State>((set, get) => ({
         target,
       },
     })),
-  setPlacementMode: (isPlacementMode) =>
+  setPlacementMode: (placementMode) =>
     set((state) => ({
       model: {
         ...state.model,
-        isPlacementMode,
+        placementMode,
+      },
+    })),
+  setGhostPosition: (position) =>
+    set((state) => ({
+      model: {
+        ...state.model,
+        ghostPosition: position,
       },
     })),
 
   // data concerns
   addEntityToModel: (entity) => {
+    console.log("Before update");
+    console.log("New entity", entity);
     return createEntity(entity, set);
   },
   deleteEntityFromModel: (entityId) =>
@@ -256,10 +277,19 @@ const useAppStore = create<State>((set, get) => ({
               data: {
                 ...entity.data,
                 attributes: entity.data.attributes.map((attribute) => {
-                  if (attribute.id === attributeId) {
-                    return { ...attribute, type: type };
+                  if (attribute.id !== attributeId) {
+                    return attribute;
                   }
-                  return attribute;
+
+                  let updatedAttr = { ...attribute, type: type };
+
+                  if (type === "identifier") {
+                    updatedAttr.primaryKey = true;
+                    updatedAttr.nullable = false;
+                  } else if (attribute.primaryKey) {
+                    updatedAttr.primaryKey = false;
+                  }
+                  return updatedAttr;
                 }),
               },
             };
@@ -450,7 +480,7 @@ function createOneToManyRelation(
           return {
             ...entity,
             type: "entity",
-            position: { x: 0, y: 0 }, // tODO: Fix this
+            position: entity.position,
             data: {
               ...entity.data,
               attributes: updatedAttributes,
@@ -526,7 +556,7 @@ function createManyToManyRelation(
         },
       ],
     },
-    position: { x: 0, y: 0 },
+    position: createRelationValues.position!,
     type: "entity",
   };
 

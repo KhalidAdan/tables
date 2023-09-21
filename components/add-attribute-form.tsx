@@ -69,7 +69,7 @@ export default function AddAttributeForm({
               <FormLabel htmlFor="type">Type</FormLabel>
               <FormControl>
                 <AttributeTypeSelect
-                  value={field.value}
+                  defaultValue={field.value}
                   onChange={field.onChange}
                 />
               </FormControl>
@@ -84,7 +84,7 @@ export default function AddAttributeForm({
             <FormItem>
               <FormLabel htmlFor="default">Default value</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} disabled={!!primaryKey} />
               </FormControl>
               <FormMessage />
             </FormItem>

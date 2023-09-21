@@ -14,20 +14,23 @@ import { Button } from "./ui/button";
 import { Icons } from "./ui/icons";
 
 export default function SchemaDefinitionSheet({
-  sheetTrigger,
   target,
-  schema,
 }: {
-  sheetTrigger: React.ReactNode;
-  target: "postgres" | "mysql" | "prisma";
-  schema: string;
+  target: "postgres" | "mysql" | "sqlite";
 }) {
   const [icon, setIcon] = useState<React.ReactNode>(<Icons.copy />);
-  const { model, addEntityToModel } = useAppStore();
+  const { generateSchema, addEntityToModel } = useAppStore();
+
+  // TODO: This is rendering on ever entitiy change to position, which is not ideal
+  const schema = generateSchema();
 
   return (
     <Sheet>
-      <SheetTrigger asChild>{sheetTrigger}</SheetTrigger>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="icon" className="rounded-lg">
+          <Icons.hamburger />
+        </Button>
+      </SheetTrigger>
       <SheetContent side="right" className="!max-w-xl">
         <SheetHeader>
           <SheetTitle className="capitalize flex justify-between">
@@ -74,7 +77,8 @@ export default function SchemaDefinitionSheet({
                       primaryKey: false,
                       unique: false,
                       nullable: true,
-                      default: "NOW()",
+                      default:
+                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
                     },
                     {
                       id: crypto.randomUUID(),
@@ -83,7 +87,8 @@ export default function SchemaDefinitionSheet({
                       primaryKey: false,
                       unique: false,
                       nullable: true,
-                      default: "NOW()",
+                      default:
+                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
                     },
                   ],
                 },
@@ -128,7 +133,8 @@ export default function SchemaDefinitionSheet({
                       primaryKey: false,
                       unique: false,
                       nullable: true,
-                      default: "NOW()",
+                      default:
+                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
                     },
                     {
                       id: crypto.randomUUID(),
@@ -137,7 +143,8 @@ export default function SchemaDefinitionSheet({
                       primaryKey: false,
                       unique: false,
                       nullable: true,
-                      default: "NOW()",
+                      default:
+                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
                     },
                   ],
                 },
@@ -153,7 +160,7 @@ export default function SchemaDefinitionSheet({
           </Button>
         </SheetHeader>
 
-        <div className="flex flex-col mt-2">
+        <div className="flex flex-col mt-2 overflow-auto">
           <Button
             variant="ghost"
             size="icon"

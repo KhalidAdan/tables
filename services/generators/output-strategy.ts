@@ -1,4 +1,7 @@
+import { ModelType } from "@/schemas/tables-schema";
+
 export abstract class AbstractOutputStrategy {
+  abstract generateSchema(model: ModelType): string;
   toSnakeCase = (str: string): string => {
     return str
       .replace(/\W+/g, " ")

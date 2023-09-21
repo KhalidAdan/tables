@@ -153,9 +153,9 @@ const onUpdateOrDeleteActions = [
 
 export const RelationSchema = z.object({
   id: Identifier,
-  fromEntity: z.lazy(() => EntitySchema),
-  toEntity: z.lazy(() => EntitySchema),
-  throughEntity: z.lazy(() => EntitySchema).optional(),
+  fromEntity: EntitySchema,
+  toEntity: EntitySchema,
+  throughEntity: EntitySchema.optional(),
   type: z.enum(["one-to-one", "one-to-many", "many-to-many"] as const),
   x: z.number().nullish(),
   y: z.number().nullish(),
@@ -163,7 +163,7 @@ export const RelationSchema = z.object({
   onUpdate: z.enum(onUpdateOrDeleteActions).default("CASCADE"),
 });
 
-const targets = ["postgres", "mysql", "prisma"] as const;
+const targets = ["postgres", "mysql", "sqlite"] as const;
 
 export const AddRelationFormSchema = RelationSchema.pick({
   id: true,
@@ -173,6 +173,12 @@ export const AddRelationFormSchema = RelationSchema.pick({
 }).extend({
   fromEntityId: Identifier,
   toEntityId: Identifier,
+  position: z
+    .object({
+      x: z.number(),
+      y: z.number(),
+    })
+    .nullish(),
 });
 
 const TargetTypes = z.enum(targets);
@@ -182,7 +188,11 @@ export const ModelSchema = z.object({
   entities: z.array(EntitySchema),
   relations: z.array(RelationSchema),
   target: TargetTypes,
-  isPlacementMode: z.boolean().default(false),
+  placementMode: z.boolean().default(false),
+  ghostPosition: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
 });
 
 /**

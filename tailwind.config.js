@@ -24,12 +24,6 @@ module.exports = {
           "colors.gray.700"
         )} 1px, transparent 0)`,
       }),
-      backgroundSize: {
-        "graph-size": "30px 30px",
-      },
-      backgroundPosition: {
-        "graph-position": "-15px -15px",
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

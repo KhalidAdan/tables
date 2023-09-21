@@ -1,6 +1,7 @@
 "use client";
 
 import { EntityType } from "@/schemas/tables-schema";
+import { Handle, Position } from "reactflow";
 import AddAttributeForm from "./add-attribute-form";
 import { Attribute } from "./attribute";
 import { Button } from "./ui/button";
@@ -19,7 +20,8 @@ const Entity = (props: EntityType) => {
   const hasAttributes = attributes.length > 0;
 
   return (
-    <div className="p-6 rounded-lg border w-[400px] text-left space-y-4 bg-background ">
+    // handles seem to add bottom padding, and styling has proven difficult
+    <div className="px-6 pt-6 pb-2 rounded-lg border w-[400px] text-left space-y-4 bg-background ">
       <section className="-mx-6 -mt-6 pr-4 border-b bg-accent rounded-t-[6px] flex justify-between items-center">
         <div className="pl-4">{entity.name}</div>
         <Dialog>
@@ -57,8 +59,20 @@ const Entity = (props: EntityType) => {
           </TypographySmall>
         </div>
       )}
-      {/* <Handle type="target" position={Position.Left} className="h-0" />
-      <Handle type="source" position={Position.Right} className="h-0" /> */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          border: "none",
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          border: "none",
+        }}
+      />
     </div>
   );
 };

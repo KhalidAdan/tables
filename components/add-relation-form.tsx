@@ -34,7 +34,7 @@ export function AddRelationForm({
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { model, addRelationToModel } = useAppStore();
+  const { model, addRelationToModel, setPlacementMode } = useAppStore();
 
   const randomUuid = crypto.randomUUID();
   const form = useForm<AddRelationFormProps>({
@@ -48,7 +48,35 @@ export function AddRelationForm({
   const onSubmit: SubmitHandler<AddRelationFormProps> = useCallback(
     (values) => {
       setOpen(false);
-      addRelationToModel(values);
+      //addRelationToModel(values);
+      const handleManyToMany = () => {
+        setPlacementMode(true);
+        const onMouseUp = (event: MouseEvent) => {
+          const latestGhostPosition =
+            useAppStore.getState().model.ghostPosition;
+          setPlacementMode(false);
+          window.removeEventListener("mouseup", onMouseUp, {
+            capture: true,
+          });
+
+          addRelationToModel({
+            ...values,
+            position: {
+              x: latestGhostPosition.x,
+              y: latestGhostPosition.y,
+            },
+          });
+        };
+        window.addEventListener("mouseup", onMouseUp, {
+          capture: true,
+        });
+      };
+
+      if (values.type === "many-to-many") {
+        handleManyToMany();
+      } else {
+        addRelationToModel(values);
+      }
     },
     []
   );

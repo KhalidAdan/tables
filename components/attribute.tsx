@@ -7,8 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import useAppStore from "@/lib/store";
-import { cn } from "@/lib/utils";
+import useAppStore, { getRelationById } from "@/lib/store";
+import { cn, produceRelationTypeLabel } from "@/lib/utils";
 import { AttributeType, EntityType, attributes } from "@/schemas/tables-schema";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -39,113 +39,119 @@ export const Attribute = ({
       data-testid="attribute"
       data-attribute-name={attribute.name}
       className={cn(
-        "grid grid-cols-3 gap-4 pb-4 space-y-1 last:pb-0 -mx-6 px-6",
+        "pb-4 space-y-1 last:pb-0 -mx-6 px-6",
         isLastAttribute ? "border-b" : ""
       )}
     >
-      <div className="flex gap-4 col-span-3">
-        <div className="w-full flex gap-3 items-center">
-          {attribute.relationKey ? (
-            <AttributeTypeBadge isRelation name={attribute.name} />
-          ) : (
+      <div className="grid grid-cols-6 gap-2 items-center">
+        {attribute.relationKey ? (
+          <div className="col-span-1">
+            <RelationTypeBadge attr={attribute} />
+          </div>
+        ) : (
+          <div className="col-span-2">
             <AttributeTypeSelect
-              attribute={attribute}
-              value={attribute.type}
+              defaultValue={attribute.type}
               onChange={(value) =>
                 editAttributeType(entityId, attribute.id, value)
               }
             />
-          )}
-          <Input
-            defaultValue={attribute.name}
-            onChange={(event) => console.log(event)}
-          />
-          <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteAttributeFromEntity(entityId, attribute);
-            }}
-          >
-            <Icons.trash size="16" />
-          </Button>
-        </div>
+          </div>
+        )}
+        <Input
+          className={cn(!attribute.relationKey ? "col-span-3" : "col-span-4")}
+          defaultValue={attribute.name}
+          onChange={(event) => console.log(event)}
+        />
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteAttributeFromEntity(entityId, attribute);
+          }}
+        >
+          <Icons.trash size="16" />
+        </Button>
       </div>
-      {!attribute.primaryKey && (
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="unique"
-            defaultChecked={attribute.unique}
-            onCheckedChange={(checked: boolean) =>
-              setAttributeUnique(entityId, attribute.id, checked)
-            }
-          />
-          <Label htmlFor="terms">Unique</Label>
-        </div>
-      )}
-      {!attribute.primaryKey && (
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="nullable"
-            disabled={attribute.unique}
-            defaultChecked={attribute.nullable}
-            onCheckedChange={(checked: boolean) =>
-              setAttributeNullable(entityId, attribute.id, checked)
-            }
-          />
-          <Label htmlFor="terms">Nullable</Label>
-        </div>
-      )}
+      <div
+        className={cn(
+          "flex gap-4",
+          !attribute.primaryKey && !attribute.relationKey && "pt-3"
+        )}
+      >
+        {!attribute.primaryKey && !attribute.relationKey && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="unique"
+              defaultChecked={attribute.unique}
+              onCheckedChange={(checked: boolean) =>
+                setAttributeUnique(entityId, attribute.id, checked)
+              }
+            />
+            <Label htmlFor="terms">Unique</Label>
+          </div>
+        )}
+        {!attribute.primaryKey && !attribute.relationKey && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="nullable"
+              disabled={attribute.unique}
+              defaultChecked={attribute.nullable}
+              onCheckedChange={(checked: boolean) =>
+                setAttributeNullable(entityId, attribute.id, checked)
+              }
+            />
+            <Label htmlFor="terms">Nullable</Label>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-const AttributeTypeBadge = ({
-  name,
-  isRelation,
-}: {
-  name: AttributeType["name"];
-  isRelation?: boolean;
-}) => (
-  <Badge
-    variant="outline"
-    className={cn("cursor-move", isRelation && "bg-green-600")}
-  >
-    {isRelation ? "relation" : name}
-  </Badge>
-);
+const RelationTypeBadge = ({ attr }: { attr: AttributeType }) => {
+  if (!attr.relationKey)
+    throw new Error("RelationTypeBadge: relationKey is undefined");
 
-export const AttributeTypeSelect = ({
-  attribute,
-  value,
-  onChange,
-}: {
-  attribute?: AttributeType;
-  value: AttributeType["type"];
-  onChange: (value: AttributeType["type"]) => void;
-}) => {
-  const selectedAttribute = attribute
-    ? attributes.find((attr) => attr === attribute.type)
-    : undefined;
+  const state = useAppStore();
+  const relation = getRelationById(state, attr.relationKey);
+  if (!relation) throw new Error("RelationTypeBadge: relation is undefined");
+
+  const label = produceRelationTypeLabel(relation.type);
 
   return (
-    <Select
-      defaultValue={selectedAttribute ?? undefined}
-      value={value}
-      onValueChange={onChange}
+    <Badge
+      variant="outline"
+      className={cn("cursor-move m-0", attr.relationKey && "bg-green-600")}
     >
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {attributes.map((key) => (
-            <SelectItem key={key} value={key} className="capitalize">
-              <span className="mr-2">{key}</span>
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+      {attr.relationKey ? label : attr.name}
+    </Badge>
+  );
+};
+
+export const AttributeTypeSelect = ({
+  defaultValue,
+  onChange,
+}: {
+  defaultValue: AttributeType["type"];
+  onChange: (value: AttributeType["type"]) => void;
+}) => {
+  return (
+    <div className="capitalize">
+      <Select defaultValue={defaultValue} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="w-min">
+          <SelectGroup>
+            {attributes.map((key) => (
+              <SelectItem key={key} value={key}>
+                <span className="mr-2">{key}</span>
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   );
 };

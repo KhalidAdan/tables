@@ -22,7 +22,11 @@ export function AddEntityForm({
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { addEntityToModel } = useAppStore();
+  const {
+    addEntityToModel,
+    setPlacementMode,
+    model: { ghostPosition },
+  } = useAppStore();
   const randomUuid = crypto.randomUUID();
   const form = useForm<EntityType>({
     resolver: zodResolver(EntitySchema),
@@ -41,16 +45,40 @@ export function AddEntityForm({
     },
   });
 
-  const onSubmit: SubmitHandler<EntityType> = useCallback(
-    (values) => {
-      console.log(values);
-      setOpen(false);
+  const onSubmit: SubmitHandler<EntityType> = useCallback((values) => {
+    setOpen(false);
+    setPlacementMode(true);
+
+    const onMouseUp = (event: MouseEvent) => {
+      const latestGhostPosition = useAppStore.getState().model.ghostPosition;
+      console.log("latest ghost position", latestGhostPosition);
+      console.log("old ghost pos", ghostPosition);
+      console.log("latest entity", {
+        ...values,
+        position: {
+          x: latestGhostPosition.x,
+          y: latestGhostPosition.y,
+        },
+      });
+      event.stopPropagation();
+      event.preventDefault();
+
       addEntityToModel({
         ...values,
+        position: {
+          x: latestGhostPosition.x,
+          y: latestGhostPosition.y,
+        },
       });
-    },
-    [addEntityToModel, setOpen]
-  );
+      setPlacementMode(false);
+      window.removeEventListener("mouseup", onMouseUp, {
+        capture: true,
+      });
+    };
+    window.addEventListener("mouseup", onMouseUp, {
+      capture: true,
+    });
+  }, []);
 
   console.log(form.formState.errors);
   return (

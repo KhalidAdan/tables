@@ -25,6 +25,7 @@ export default function AddEntityOrRelation(
         <Button
           variant="outline"
           size="icon"
+          className="rounded-lg"
           onClick={() => setOpen(!open)}
           disabled={disabled}
         >

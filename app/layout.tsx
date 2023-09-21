@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/ui/theme-provider";
 
+import { ReactFlowProvider } from "@/components/ReactFlowProvider";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -18,7 +19,7 @@ export default function RootLayout({
       <head />
       <body className="w-full h-full ">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <ReactFlowProvider>{children}</ReactFlowProvider>
         </ThemeProvider>
       </body>
     </html>
