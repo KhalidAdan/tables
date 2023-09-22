@@ -17,3 +17,7 @@ I cut my teeth on a more server-rendered project called Simbi, but with Tables, 
 ## Check it out for yourself
 https://github.com/KhalidAdan/tables/assets/18726938/b4e40814-4f48-4ea9-a9dd-aabfd5113909
 
+### Most interested bits
+- SQL export strategies in the services/ folder
+- zustand store in the lib/ folder
+- zod schemas in schema/
