@@ -181,16 +181,3 @@ export const ModelSchema = z.object({
     y: z.number(),
   }),
 });
-
-/**
- * Ah, one-to-one relationships in databases—what a quaint little mythology! It's as if
- * someone looked at a relational database, a masterwork designed to store vast,
- * interconnected realms of data, and thought, "You know what would be fun? Assigning
- * this data a monogamous partner and making them inseparable for all eternity. Like
- * lovebirds, or those tandem bicycles nobody actually enjoys using." Let's be real,
- * one-to-one relationships in databases are the cargo shorts of data design. Sure, they
- * have a lot of pockets (read: columns), but do you actually need them? No. You just
- * end up hauling around a bunch of unnecessary baggage, confusing everyone who tries to
- * read your pants, err, columns. Don't fall for this romanticized relic of database lore. Free your
- * tables, and let them live their best, independent lives!
- */
