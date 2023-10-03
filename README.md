@@ -17,11 +17,12 @@ I cut my teeth on a more server-rendered project called Simbi, but with Tables, 
 ## Check it out for yourself
 https://github.com/KhalidAdan/tables/assets/18726938/b4e40814-4f48-4ea9-a9dd-aabfd5113909
 
-### Most interested bits
+### Most interesting bits
 - SQL export strategies in the services/ 
 - zustand store in lib/ 
 - zod schemas in schemas/
 - shadcn/ui components in components/ui/
+- reactflow setup/custom nodes and edges in app/page.tsx
 
 ### Whats next?
 - I'm pretty happy with this, but if I did make any changes it would be to add check constraints and maybe more export strategies like prisma. Ater that maybe even a Next.js CLI wrapper that inits a project with next-auth with a custom adapter, shadcn/ui, a DB query runner that produces typed results, and some pregenerated api routes based on a schema. The UX escapes me at the moment but having a tool that generates a batteries included way to hack on side projects is pretty tempting!
