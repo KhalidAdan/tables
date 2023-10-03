@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-// https://zod.dev/?id=recursive-types
-/**
- * You can define a recursive schema in Zod, but because of a limitation of TypeScript,
- * their type can't be statically inferred. Instead you'll need to define the type
- * definition manually, and provide it to Zod as a "type hint".
- */
 export type IdentifierType = string;
 export type AttributeType = z.infer<typeof AttributeSchema>;
 export type RelationType = z.infer<typeof RelationSchema>;
