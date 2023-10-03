@@ -5,7 +5,7 @@ export type AttributeType = z.infer<typeof AttributeSchema>;
 export type RelationType = z.infer<typeof RelationSchema>;
 export type ModelType = z.infer<typeof ModelSchema>;
 export type EntityType = z.infer<typeof EntitySchema>;
-export const Identifier = z.string().uuid(); // if I decide to use a DB i'll let it generate the uuids
+export const Identifier = z.string().uuid(); // Decide on DB or client gen if adding a DB
 
 export const attributes = [
   "identifier",
@@ -17,19 +17,10 @@ export const attributes = [
   "timestamp",
   "boolean",
   "money",
-  // "enum",
 ] as const;
 
 const AttributeTypes = z.enum(attributes);
 
-// Enums:
-// MySQL 8,0 https://dev.mysql.com/doc/refman/8.0/en/enum.html
-// Postgres https://www.postgresql.org/docs/9.1/datatype-enum.html
-// Seems like they store case sensitive strings under the hood
-
-// CHECK CONSTRAINTS:
-// MySQL8: https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html // email: (`email` REGEXP "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$");
-// Postgres: https://www.postgresql.org/docs/9.1/ddl-constraints.html // email: CHECK (email ~* '^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$')
 const isValidDateTimeDefault = (defaultValue: string | Date) => {
   return (
     defaultValue instanceof Date ||
@@ -60,12 +51,14 @@ export const AttributeSchema = z
     (data) => {
       if (data.default === undefined) return true;
       if (data.nullable && data.primaryKey) return false;
+      if (data.nullable && data.unique) return false;
       if (data.nullable) return true;
 
       let coercedDefaultValue;
 
       switch (data.type) {
         case "identifier":
+          return true; // Because this is generated on the client with a uuid library the app will complain loudly if there is an issue. If a DB enters the chat, we'll need to validate uuid's generated on the client (if we go that route and dont use the DB to do it)
         case "number":
           coercedDefaultValue = Number(data.default);
           break;
