@@ -48,10 +48,10 @@ export function AddRelationForm({
   const onSubmit: SubmitHandler<AddRelationFormProps> = useCallback(
     (values) => {
       setOpen(false);
-      //addRelationToModel(values);
+
       const handleManyToMany = () => {
         setPlacementMode(true);
-        const onMouseUp = (event: MouseEvent) => {
+        const onMouseUp = (_event: MouseEvent) => {
           const latestGhostPosition =
             useAppStore.getState().model.ghostPosition;
           setPlacementMode(false);
@@ -78,10 +78,8 @@ export function AddRelationForm({
         addRelationToModel(values);
       }
     },
-    []
+    [addRelationToModel, setOpen, setPlacementMode]
   );
-
-  console.log(form.formState.errors);
 
   return (
     <Form {...form}>
@@ -118,6 +116,7 @@ export function AddRelationForm({
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="fromEntityId"
@@ -196,6 +195,61 @@ export function AddRelationForm({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="onUpdate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="type">On Update Rule</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="CASCADE">Cascade</SelectItem>
+                      <SelectItem value="RESTRICT">Restrict</SelectItem>
+                      <SelectItem value="NO ACTION">No Action</SelectItem>
+                      <SelectItem value="SET NULL">Set Null</SelectItem>
+                      <SelectItem value="SET DEFAULT">Set Default</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="onDelete"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="type">On Delete Rule</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="CASCADE">Cascade</SelectItem>
+                      <SelectItem value="RESTRICT">Restrict</SelectItem>
+                      <SelectItem value="NO ACTION">No Action</SelectItem>
+                      <SelectItem value="SET NULL">Set Null</SelectItem>
+                      <SelectItem value="SET DEFAULT">Set Default</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button type="submit">Add relation</Button>
       </form>
     </Form>

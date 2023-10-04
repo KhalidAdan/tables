@@ -90,16 +90,29 @@ export class MySQLStrategy extends AbstractOutputStrategy {
     entityId: string,
     relation: RelationType
   ): string | undefined {
+    if (
+      relation.type !== "one-to-many" &&
+      relation.type !== "one-to-one" &&
+      relation.type !== "many-to-many"
+    )
+      throw new Error(`Unsupported relation type: ${relation.type}`);
+
+    // handle one to one and one to many
     if (relation.type === "one-to-one" || relation.type === "one-to-many") {
       if (relation.toEntity.id !== entityId) return;
+
       const { entity: fromEntity, pk: primaryKeyAttribute } =
         this.findEntityAndPK(relation.fromEntity.id, model);
+
       return this.generateRefString(
         fromEntity.data.name,
         primaryKeyAttribute.name,
         relation
       );
-    } else if (relation.type === "many-to-many") {
+    }
+
+    // handle many to many
+    if (relation.type === "many-to-many") {
       if (!relation.throughEntity)
         throw new Error("Missing through entity on a many-to-many relation");
       if (relation.throughEntity.id !== entityId) return;
@@ -119,8 +132,6 @@ export class MySQLStrategy extends AbstractOutputStrategy {
         relation
       )}`;
     }
-
-    throw new Error(`Unsupported relation type: ${relation.type}`);
   }
 
   private generateUniqueColumns(uniqueAttributes: string[]): string | null {

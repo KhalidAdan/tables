@@ -61,7 +61,10 @@ export const Attribute = ({
         <Input
           className={cn(!attribute.relationKey ? "col-span-3" : "col-span-4")}
           defaultValue={attribute.name}
-          onChange={(event) => console.log(event)}
+          onChange={(event) => {
+            const value = event.target.value;
+            //editAttributeType(entityId, attribute.id, value); // this needs to be fixed to spread the whole attribute object
+          }}
         />
         <Button
           variant="outline"

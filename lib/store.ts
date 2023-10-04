@@ -580,8 +580,4 @@ function createManyToManyRelation(
   }));
 }
 
-// useAppStore.subscribe((state) => {
-//   console.log("New state", state);
-// });
-
 export default useAppStore;

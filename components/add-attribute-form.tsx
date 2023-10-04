@@ -36,7 +36,6 @@ export default function AddAttributeForm({
   });
   const onSubmit: SubmitHandler<AttributeType> = (values: AttributeType) => {
     const randomUuid = crypto.randomUUID();
-    console.log("add attribute form", values);
     addAttributeToEntity(entity.id, {
       ...values,
       id: randomUuid,

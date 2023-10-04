@@ -51,15 +51,7 @@ export function AddEntityForm({
 
     const onMouseUp = (event: MouseEvent) => {
       const latestGhostPosition = useAppStore.getState().model.ghostPosition;
-      console.log("latest ghost position", latestGhostPosition);
-      console.log("old ghost pos", ghostPosition);
-      console.log("latest entity", {
-        ...values,
-        position: {
-          x: latestGhostPosition.x,
-          y: latestGhostPosition.y,
-        },
-      });
+
       event.stopPropagation();
       event.preventDefault();
 
@@ -80,7 +72,6 @@ export function AddEntityForm({
     });
   }, []);
 
-  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -91,7 +82,7 @@ export function AddEntityForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} onChange={field.onChange} />
               </FormControl>
               <FormDescription>
                 This is the name of your database table under the hood.

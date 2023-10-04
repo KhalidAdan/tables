@@ -77,7 +77,7 @@ export default function HomePage() {
 
   return (
     <main className="h-full">
-      <div className="fixed right-0 top-0 m-6 z-50 p-2 rounded-lg border bg-background">
+      <div className="fixed right-0 top-0 m-6 z-50 p-2 rounded-lg border bg-background transform-gpu">
         <div className="flex gap-4">
           <ModeToggle />
           <div className="border-r -m-2"></div>

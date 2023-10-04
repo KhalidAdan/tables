@@ -69,44 +69,62 @@ export class PostgresStrategy extends AbstractOutputStrategy {
     return foreignKeys.length > 0 ? `${foreignKeys.join(",\n  ")}` : null;
   }
 
-  generateRefString = (name: string, pkName: string, relation: RelationType) =>
-    `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
+  private generateRefString(
+    name: string,
+    pkName: string,
+    relation: RelationType
+  ) {
+    return `${this.toSnakeCase(name)}_id int REFERENCES ${this.toSnakeCase(
       name
     )}(${this.toSnakeCase(pkName)}) ON DELETE ${relation.onDelete} ON UPDATE ${
       relation.onUpdate
     }`;
+  }
 
-  findEntityAndPK = (model: ModelType, id: string) => {
+  private findEntityAndPK(id: string, model: ModelType) {
     const entity = model.entities.find((e) => e.id === id);
     if (!entity) throw new Error(`Entity not found: ${id}`);
     const pk = entity.data.attributes.find((attr) => attr.primaryKey);
     if (!pk) throw new Error(`Primary key not found for entity: ${id}`);
     return { entity, pk };
-  };
+  }
 
   private generateForeignKey(
     model: ModelType,
     entityId: string,
     relation: RelationType
   ): string | undefined {
+    if (
+      relation.type !== "one-to-many" &&
+      relation.type !== "one-to-one" &&
+      relation.type !== "many-to-many"
+    )
+      throw new Error(`Unsupported relation type: ${relation.type}`);
+
+    // handle one to one and one to many
     if (relation.type === "one-to-one" || relation.type === "one-to-many") {
       if (relation.toEntity.id !== entityId) return;
+
       const { entity: fromEntity, pk: primaryKeyAttribute } =
-        this.findEntityAndPK(model, relation.fromEntity.id);
+        this.findEntityAndPK(relation.fromEntity.id, model);
+
       return this.generateRefString(
         fromEntity.data.name,
         primaryKeyAttribute.name,
         relation
       );
-    } else if (relation.type === "many-to-many") {
+    }
+
+    // handle many to many
+    if (relation.type === "many-to-many") {
       if (!relation.throughEntity)
         throw new Error("Missing through entity on a many-to-many relation");
       if (relation.throughEntity.id !== entityId) return;
 
       const { entity: fromEntity, pk: fromPrimaryKeyAttribute } =
-        this.findEntityAndPK(model, relation.fromEntity.id);
+        this.findEntityAndPK(relation.fromEntity.id, model);
       const { entity: toEntity, pk: toPrimaryKeyAttribute } =
-        this.findEntityAndPK(model, relation.toEntity.id);
+        this.findEntityAndPK(relation.toEntity.id, model);
 
       return `${this.generateRefString(
         fromEntity.data.name,
@@ -118,8 +136,6 @@ export class PostgresStrategy extends AbstractOutputStrategy {
         relation
       )}`;
     }
-
-    throw new Error(`Unsupported relation type: ${relation.type}`);
   }
 
   private generateUniqueColumns(uniqueAttributes: string[]): string | null {

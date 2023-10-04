@@ -20,8 +20,7 @@ const Entity = (props: EntityType) => {
   const hasAttributes = attributes.length > 0;
 
   return (
-    // handles seem to add bottom padding, and styling has proven difficult
-    <div className="px-6 pt-6 pb-2 rounded-lg border w-[400px] text-left space-y-4 bg-background ">
+    <div className="px-6 pt-6 pb-2 rounded-lg border w-[400px] text-left space-y-4 bg-background">
       <section className="-mx-6 -mt-6 pr-4 border-b bg-accent rounded-t-[6px] flex justify-between items-center">
         <div className="pl-4">{entity.name}</div>
         <Dialog>
