@@ -2,7 +2,7 @@
 
 Generates tables, pretty simple!
 
-I cut my teeth on a more server-rendered project called Simbi, but with Tables, I wanted to dive deep into the client-focused capabilities of Next13. The result? A streamlined GUI that acts as a friendly wrapper around raw SQL, letting you visualize and construct your data models without the tedium.
+I cut my teeth on a more server-rendered project called Simbi, but with Tables, I wanted to dive deep into the client-focused capabilities of Next13. The result? A streamlined GUI that acts as a friendly generator around raw SQL, letting you visualize and construct your data models without the tedium.
 
 ## Features
 - Drag-and-Drop Table Creation: Sketch your data model like you're doodling, but this doodle writes SQL schema for you.
