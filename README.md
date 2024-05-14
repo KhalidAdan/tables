@@ -17,7 +17,9 @@ I cut my teeth on a more server-rendered project called Simbi, but with Tables, 
 
 ## Check it out for yourself
 
-https://github.com/KhalidAdan/tables/assets/video.mp4
+<video src="assets/videos/demo.mp4" controls="controls" style="max-width: 100%;">
+   Your browser does not support the video tag.
+</video>
 
 ### Most interesting bits
 
