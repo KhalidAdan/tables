@@ -17,7 +17,7 @@ I cut my teeth on a more server-rendered project called Simbi, but with Tables, 
 
 ## Check it out for yourself
 
-![Watch](https://github.com/KhalidAdan/tables/assets/video.mp4)
+![Watch](https://github.com/KhalidAdan/tables/assets/video.mov)
 
 ### Most interesting bits
 
