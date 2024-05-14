@@ -17,11 +17,11 @@ export class PostgresStrategy extends AbstractOutputStrategy {
         return 0;
       })
       .map((entity) => this.generateEntitySchema(model, entity));
-    return `-- generated at tables.khld.dev\n\n${lines.join("\n\n")}`;
+    return `-- Generated at tables.khld.dev\n\n${lines.join("\n\n")}`;
   }
 
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
-    let uniqueAttributes: any[] = [];
+    let uniqueAttributes: string[] = [];
     let columnDefs = entity.data.attributes
       .filter((attr) => !attr.relationKey)
       .map((attr: AttributeType) =>

@@ -150,7 +150,7 @@ export let RelationSchema = z.object({
   onUpdate: z.enum(onUpdateOrDeleteActions).default("CASCADE"),
 });
 
-let targets = ["postgres", "mysql", "sqlite"] as const;
+let targets = ["postgres", "mysql", "sqlite", "prisma"] as const;
 
 export let AddRelationFormSchema = RelationSchema.pick({
   id: true,

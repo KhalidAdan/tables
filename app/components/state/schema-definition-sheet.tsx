@@ -16,18 +16,24 @@ import { highlight } from "sql-highlight";
 export default function SchemaDefinitionSheet({
   target,
 }: {
-  target: "postgres" | "mysql" | "sqlite";
+  target: "postgres" | "mysql" | "sqlite" | "prisma";
 }) {
   let [icon, setIcon] = useState<React.ReactNode>(<Icons.copy />);
-  let { generateSchema, addEntityToModel, addRelationToModel } = useAppStore();
-
-  // TODO: This is rendering on ever entitiy change to position, which is not ideal
-  let schema = generateSchema();
+  let [schema, setSchema] = useState<string>("");
+  let { generateSchema, addEntityToModel } = useAppStore();
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-lg">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-lg"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSchema(generateSchema());
+          }}
+        >
           <Icons.hamburger />
         </Button>
       </SheetTrigger>
@@ -76,9 +82,11 @@ export default function SchemaDefinitionSheet({
                       type: "date",
                       primaryKey: false,
                       unique: false,
-                      nullable: true,
+                      nullable: false,
                       default:
-                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
+                        target === "postgres" || target == "prisma"
+                          ? "NOW()"
+                          : "CURRENT_TIMESTAMP",
                     },
                     {
                       id: crypto.randomUUID(),
@@ -88,7 +96,9 @@ export default function SchemaDefinitionSheet({
                       unique: false,
                       nullable: true,
                       default:
-                        target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
+                        target === "postgres" || target == "prisma"
+                          ? "NOW()"
+                          : "CURRENT_TIMESTAMP",
                     },
                   ],
                 },
@@ -132,7 +142,7 @@ export default function SchemaDefinitionSheet({
                       type: "date",
                       primaryKey: false,
                       unique: false,
-                      nullable: true,
+                      nullable: false,
                       default:
                         target === "postgres" ? "NOW()" : "CURRENT_TIMESTAMP",
                     },

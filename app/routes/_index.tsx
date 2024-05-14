@@ -25,19 +25,24 @@ export let meta: MetaFunction = () => {
   ];
 };
 
-const nodeTypes = { entity: Entity };
+let nodeTypes = { entity: Entity };
 
 export default function Index() {
-  const { model, onNodesChange, setTarget } = useAppStore();
-  const edges = useMemo(() => {
-    const createEdge = (id: string, source: string, target: string): Edge => ({
+  let { model, onNodesChange, setTarget } = useAppStore();
+  let edges = useMemo(() => {
+    let createEdge = (
+      id: string,
+      source: string,
+      target: string,
+      relationType: string
+    ): Edge => ({
       id,
       source,
       target,
       animated: true,
       type: "smoothstep",
       className: "fill-green-500 font-bold",
-      label: "1 : M",
+      label: relationType,
       labelBgPadding: [8, 4],
       labelBgBorderRadius: 4,
       labelBgStyle: {
@@ -47,9 +52,9 @@ export default function Index() {
       },
     });
 
-    const edges: Edge[] = [];
+    let edges: Edge[] = [];
 
-    for (const relation of model.relations) {
+    for (let relation of model.relations) {
       if (relation.type === "many-to-many") {
         if (!relation.throughEntity) throw new Error("No through entity found");
 
@@ -57,17 +62,24 @@ export default function Index() {
           createEdge(
             `${relation.id}-1`,
             relation.fromEntity.id,
-            relation.throughEntity.id
+            relation.throughEntity.id,
+            "1 : M"
           ),
           createEdge(
             `${relation.id}-2`,
             relation.toEntity.id,
-            relation.throughEntity.id
+            relation.throughEntity.id,
+            "1 : M"
           )
         );
       } else {
         edges.push(
-          createEdge(relation.id, relation.fromEntity.id, relation.toEntity.id)
+          createEdge(
+            relation.id,
+            relation.fromEntity.id,
+            relation.toEntity.id,
+            relation.type === "one-to-one" ? "1 : 1" : "1 : M"
+          )
         );
       }
     }
@@ -77,13 +89,15 @@ export default function Index() {
 
   return (
     <main className="h-full">
-      <div className="fixed right-0 top-0 m-6 z-50 p-2 rounded-lg border bg-background transform-gpu">
+      <div className="fixed right-0 top-0 m-6 z-50 p-2 rounded-lg border bg-background">
         <div className="flex gap-4">
           <div className="border-r -m-2"></div>
           <AddEntityOrRelation disabled={false} />
           <Select
-            defaultValue="postgres"
-            onValueChange={(value: "postgres" | "mysql") => {
+            defaultValue="prisma"
+            onValueChange={(
+              value: "postgres" | "mysql" | "sqlite" | "prisma"
+            ) => {
               setTarget(value);
             }}
           >
@@ -96,6 +110,7 @@ export default function Index() {
                 <SelectItem value="postgres">PostgreSQL</SelectItem>
                 <SelectItem value="mysql">MySQL</SelectItem>
                 <SelectItem value="sqlite">SQLite</SelectItem>
+                <SelectItem value="prisma">Prisma (RDBMS)</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -116,9 +131,6 @@ export default function Index() {
         }}
         minZoom={-1}
         maxZoom={3}
-        proOptions={{
-          hideAttribution: true,
-        }}
       >
         <Background gap={25} />
         <Controls />

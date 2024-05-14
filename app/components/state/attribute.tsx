@@ -63,10 +63,10 @@ export let Attribute = ({
         <Input
           className={cn(!attribute.relationKey ? "col-span-3" : "col-span-4")}
           defaultValue={attribute.name}
-          onChange={(event) => {
-            let value = event.target.value;
-            //editAttributeType(entityId, attribute.id, value); // this needs to be fixed to spread the whole attribute object
-          }}
+          // onChange={(event) => {
+          //let value = event.target.value;
+          //editAttributeType(entityId, attribute.id, value); // this needs to be fixed to spread the whole attribute object
+          // }}
         />
         <Button
           variant="outline"
@@ -115,10 +115,8 @@ export let Attribute = ({
 };
 
 let RelationTypeBadge = ({ attr }: { attr: AttributeType }) => {
-  if (!attr.relationKey)
-    throw new Error("RelationTypeBadge: relationKey is undefined");
-
   let state = useAppStore();
+  if (!attr.relationKey) return null;
   let relation = getRelationById(state, attr.relationKey);
   if (!relation) throw new Error("RelationTypeBadge: relation is undefined");
 

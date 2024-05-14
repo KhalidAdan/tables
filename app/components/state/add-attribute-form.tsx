@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TypographyMuted } from "@/components/ui/typography";
+import { TypographyMuted, TypographySmall } from "@/components/ui/typography";
 import {
   AttributeSchema,
   AttributeType,
@@ -19,6 +19,7 @@ import { Form } from "@remix-run/react";
 import { useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 
 export default function AddAttributeForm({
   entity,
@@ -51,7 +52,7 @@ export default function AddAttributeForm({
         let values = Object.fromEntries(formData.entries());
 
         let randomUuid = crypto.randomUUID() as string;
-        const attribute: AttributeType = {
+        let attribute: AttributeType = {
           name: values.name as AttributeType["name"],
           type: values.type as AttributeType["type"],
           default: values.default as AttributeType["default"],
@@ -70,9 +71,50 @@ export default function AddAttributeForm({
         addAttributeToEntity(entity.id, attribute);
       }}
     >
+      <div className="space-y-1 mb-2 w-full">
+        <TypographySmall>
+          Would you like to add common attributes (ID, Created At and Updated
+          At)?
+        </TypographySmall>
+        <Button
+          variant="default"
+          className="w-full"
+          onClick={(e) => {
+            e.preventDefault();
+            addAttributeToEntity(entity.id, {
+              name: "ID",
+              type: "identifier",
+              nullable: false,
+              unique: true,
+              primaryKey: true,
+              id: crypto.randomUUID() as AttributeType["id"],
+            });
+            addAttributeToEntity(entity.id, {
+              name: "Created At",
+              type: "timestamp",
+              nullable: false,
+              unique: false,
+              primaryKey: false,
+              id: crypto.randomUUID() as AttributeType["id"],
+            });
+            addAttributeToEntity(entity.id, {
+              name: "Updated At",
+              type: "timestamp",
+              nullable: false,
+              unique: false,
+              primaryKey: false,
+              id: crypto.randomUUID() as AttributeType["id"],
+            });
+          }}
+        >
+          Add common attributes
+        </Button>
+      </div>
+      <Separator />
       <TypographyMuted>
         Add an attribute to your entity or delete an entity below.
       </TypographyMuted>
+
       <div className="space-y-1">
         <Label htmlFor="name">Name</Label>
         <Input {...getInputProps(fields.name, { type: "text" })} />

@@ -85,7 +85,7 @@ let useAppStore = create<State>((set, get) => ({
     name: "Tables App",
     entities: [],
     relations: [],
-    target: "postgres",
+    target: "prisma",
     placementMode: false,
     ghostPosition: { x: 0, y: 0 },
   },
@@ -140,8 +140,6 @@ let useAppStore = create<State>((set, get) => ({
 
   // data concerns
   addEntityToModel: (entity) => {
-    console.log("Before update");
-    console.log("New entity", entity);
     return createEntity(entity, set);
   },
   deleteEntityFromModel: (entityId) =>
@@ -240,7 +238,7 @@ let useAppStore = create<State>((set, get) => ({
         },
       }));
     }
-    // // delete attribute
+    // delete attribute
     set((state) => ({
       model: {
         ...state.model,
@@ -399,6 +397,7 @@ let useAppStore = create<State>((set, get) => ({
     })),
 
   generateSchema: () => {
+    console.log("Generating schema");
     let model = get().model;
 
     let strategy = schemaStrategies[model.target];
@@ -421,7 +420,6 @@ function createEntity(
     replace?: boolean | undefined
   ) => void
 ) {
-  console.log("Before update");
   try {
     let newEntity = EntitySchema.parse(entity);
     console.log("New entity", newEntity);

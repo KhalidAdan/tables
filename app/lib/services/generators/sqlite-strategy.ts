@@ -11,13 +11,11 @@ export class SQLiteStrategy extends AbstractOutputStrategy {
     let lines = model.entities.map((entity) =>
       this.generateEntitySchema(model, entity)
     );
-    return `-- ${
-      model.name
-    } schema generated at tables.khld.dev\n\n${lines.join("\n\n")}`;
+    return `-- Generated at tables.khld.dev\n\n${lines.join("\n\n")}`;
   }
 
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
-    let uniqueAttributes: any[] = [];
+    let uniqueAttributes: string[] = [];
     let columnDefs = entity.data.attributes
       .filter((attr) => !attr.relationKey)
       .map((attr: AttributeType) =>
