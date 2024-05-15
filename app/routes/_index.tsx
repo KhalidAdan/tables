@@ -16,8 +16,6 @@ import type { MetaFunction } from "@remix-run/node";
 import { useMemo } from "react";
 import ReactFlow, { Background, Controls, Edge } from "reactflow";
 
-import "reactflow/dist/style.css";
-
 export let meta: MetaFunction = () => {
   return [
     { title: "New Remix App" },

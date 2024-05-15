@@ -118,7 +118,7 @@ let RelationTypeBadge = ({ attr }: { attr: AttributeType }) => {
   let state = useAppStore();
   if (!attr.relationKey) return null;
   let relation = getRelationById(state, attr.relationKey);
-  if (!relation) throw new Error("RelationTypeBadge: relation is undefined");
+  if (!relation) return null;
 
   let label = produceRelationTypeLabel(relation.type);
 

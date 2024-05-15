@@ -160,8 +160,8 @@ export default function SchemaDefinitionSheet({
                 },
                 type: "entity",
                 position: {
-                  x: 450,
-                  y: 0,
+                  x: -100,
+                  y: 600,
                 },
               });
             }}
@@ -187,13 +187,22 @@ export default function SchemaDefinitionSheet({
             {icon}
           </Button>
           <pre className="!max-w-2xl w-xl rounded-lg p-3 overflow-x-scroll h-full bg-background">
-            <code
-              dangerouslySetInnerHTML={{
-                __html: highlight(schema, {
-                  html: true,
-                }),
-              }}
-            ></code>
+            {target !== "prisma" && (
+              <code
+                dangerouslySetInnerHTML={{
+                  __html: highlight(schema, {
+                    html: true,
+                  }),
+                }}
+              ></code>
+            )}
+            {target === "prisma" && (
+              <code
+                dangerouslySetInnerHTML={{
+                  __html: schema,
+                }}
+              ></code>
+            )}
           </pre>
         </div>
       </SheetContent>

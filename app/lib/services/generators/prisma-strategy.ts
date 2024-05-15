@@ -15,13 +15,14 @@ export class PrismaStrategy extends AbstractOutputStrategy {
   }
 
   private generateEntitySchema(model: ModelType, entity: EntityType): string {
-    let fields = entity.data.attributes.map((attr) =>
-      this.generateColumnDef(attr)
-    );
+    let fields = entity.data.attributes
+      .filter((attr) => attr.relationKey == null)
+      .map((attr) => this.generateColumnDef(attr));
+
     let relationsString = this.generateRelations(model, entity);
-    return `model ${entity.data.name} {\n  ${fields.join("\n  ")}\n${
-      relationsString.length ? "\n  " + relationsString.join("\n  ") : ""
-    }}`;
+    return `model ${entity.data.name} {\n  ${
+      fields.length > 0 ? fields.join("\n  ") : ""
+    }${relationsString.length > 0 ? relationsString.join("\n  ") : ""}\n}`;
   }
 
   private generateColumnDef(attr: AttributeType): string {
@@ -33,58 +34,106 @@ export class PrismaStrategy extends AbstractOutputStrategy {
     return field;
   }
 
-  private generateRelations(model: ModelType, entity: EntityType) {
+  private generateRelations(model: ModelType, entity: EntityType): string[] {
     return model.relations.map((relation) =>
-      this.generateRelationDef(model, entity, relation)
+      this.generateRelationDef(entity, relation)
     );
   }
 
   private generateRelationDef(
-    model: ModelType,
     entity: EntityType,
     relation: RelationType
   ): string {
     let from = relation.fromEntity.data.name.toLocaleLowerCase();
     let to = relation.toEntity.data.name.toLocaleLowerCase();
-    //return relationDefString;
     let relationDefString = "";
+
     if (relation.type == "one-to-one") {
-      // prisma relations can be considerd to have directionality so wse process the fromEntity and the toEntity separately
-      if (entity.id === relation.fromEntity.id) {
-        relationDefString += `${to} ${this.toPascalCase(to)}?\n`;
-      } else if (entity.id === relation.toEntity.id) {
-        let receivingId = relation.fromEntity.data.attributes
-          .find((attr) => attr.primaryKey)
-          ?.name.toLocaleLowerCase();
-
-        if (!receivingId) throw new Error("No primary key found for " + to);
-
-        relationDefString += this.generateRelationString(
-          to.toLocaleLowerCase(),
-          from.toLocaleLowerCase(),
-          receivingId
-        );
-      }
+      relationDefString = this.generateOneToOneRelationDef(
+        entity,
+        relation,
+        to,
+        from
+      );
     } else if (relation.type == "one-to-many") {
-      if (entity.id === relation.fromEntity.id) {
-        relationDefString += `${to} ${this.toPascalCase(to)}[]\n`;
-      } else if (entity.id === relation.toEntity.id) {
-        let receivingId = relation.fromEntity.data.attributes
-          .find((attr) => attr.primaryKey)
-          ?.name.toLocaleLowerCase();
-
-        if (!receivingId) throw new Error("No primary key found for " + to);
-
-        relationDefString += this.generateRelationString(
-          to.toLocaleLowerCase(),
-          from.toLocaleLowerCase(),
-          receivingId
-        );
-      }
+      relationDefString = this.generateOneToManyRelationDef(
+        entity,
+        relation,
+        to,
+        from
+      );
     } else if (relation.type == "many-to-many") {
-      // enitity.id == relation.fromEntity.id => add array for relation to throughEntity
-      // enitity.id == relation.toEntity.id => add array for relation to throughEntity
-      // enitity.id == relation.throughEntity.id => add id field, add
+      relationDefString = this.generateManyToManyRelationDefString(
+        entity,
+        relation,
+        from,
+        to
+      );
+    }
+    return relationDefString;
+  }
+
+  private generateManyToManyRelationDefString(
+    entity: EntityType,
+    relation: RelationType,
+    from: string,
+    to: string
+  ) {
+    let relationDefString = "";
+    let throughEntity = relation.throughEntity;
+    if (!throughEntity)
+      throw new Error("No through entity found for Through Entity");
+    let through = throughEntity.data.name.toLocaleLowerCase();
+    if (entity.id === relation.fromEntity.id) {
+      relationDefString += `${through} ${this.toPascalCase(through)}[]`;
+    } else if (entity.id === relation.toEntity.id) {
+      relationDefString += `${through} ${this.toPascalCase(through)}[]`;
+    } else if (entity.id === throughEntity.id) {
+      let fromRelId = this.getPrimaryKeyName(relation.fromEntity);
+      if (!fromRelId) throw new Error("No primary key found for " + from);
+      let toRelId = this.getPrimaryKeyName(relation.toEntity);
+      if (!toRelId) throw new Error("No primary key found for " + to);
+
+      relationDefString += this.generateRelationString(to, from, fromRelId);
+      relationDefString += "\n  ";
+      relationDefString += this.generateRelationString(from, to, toRelId);
+      relationDefString += "\n";
+    }
+    return relationDefString;
+  }
+
+  private generateOneToManyRelationDef(
+    entity: EntityType,
+    relation: RelationType,
+    to: string,
+    from: string
+  ) {
+    let relationDefString = "";
+    if (entity.id === relation.fromEntity.id) {
+      relationDefString += `${to} ${this.toPascalCase(to)}[]`;
+    } else if (entity.id === relation.toEntity.id) {
+      let receivingId = this.getPrimaryKeyName(relation.fromEntity);
+      if (!receivingId) throw new Error("No primary key found for " + to);
+
+      relationDefString += this.generateRelationString(to, from, receivingId);
+    }
+    return relationDefString;
+  }
+
+  private generateOneToOneRelationDef(
+    entity: EntityType,
+    relation: RelationType,
+    to: string,
+    from: string
+  ): string {
+    let relationDefString = "";
+    if (entity.id === relation.fromEntity.id) {
+      relationDefString += `${to} ${this.toPascalCase(to)}?`;
+    } else if (entity.id === relation.toEntity.id) {
+      let receivingId = this.getPrimaryKeyName(relation.fromEntity);
+      if (!receivingId) throw new Error("No primary key found for " + to);
+
+      relationDefString += this.generateRelationString(to, from, receivingId);
     }
     return relationDefString;
   }
@@ -96,7 +145,13 @@ export class PrismaStrategy extends AbstractOutputStrategy {
   ): string {
     return `${this.toSnakeCase(from)} ${this.toPascalCase(
       from
-    )} @relation(fields: [${to}Id], references: [${receivingId}])\n  ${to}Id Int @unique\n`;
+    )} @relation(fields: [${to}Id], references: [${receivingId}])\n  ${to.toLocaleLowerCase()}Id Int @unique`;
+  }
+
+  private getPrimaryKeyName(entity: EntityType): string | undefined {
+    return entity.data.attributes
+      .find((attr) => attr.primaryKey)
+      ?.name.toLocaleLowerCase();
   }
 
   private prismaFieldType(type: string): string {
